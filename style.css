@@ -448,24 +448,28 @@ footer {
     }
 
     .match-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
         margin-bottom: 12px;
     }
 
     .match-date {
         padding: 4px 8px;
         font-size: 0.8em;
+        order: 1;
     }
 
     .match-time {
         font-size: 1em;
+        order: 2;
     }
 
     .match-poule {
         font-size: 0.75em;
         padding: 3px 8px;
+        order: 3;
     }
 
     .team {
