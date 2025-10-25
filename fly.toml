@@ -1,0 +1,38 @@
+# Fly Launch configuration
+# See 'fly help platform' for more information about how to use this file.
+
+app = "interligues-u14"
+primary_region = "cdg"
+
+[build]
+  builder = "pasl"
+
+[env]
+  PORT = "3000"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 3000
+  processes = ["app"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 1000
+    soft_limit = 850
+
+  [[services.ports]]
+    number = 80
+    protocol = "tcp"
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    number = 443
+    protocol = "tcp"
+    handlers = ["tls", "http"]
+
+  [services.tcp_checks]
+    enabled = true
+    grace_period = "1s"
+    interval = "15s"
+    timeout = "5s"
