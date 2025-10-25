@@ -3,13 +3,17 @@ const API_BASE_URL = 'https://api-ffhockey-sur-gazon.fly.dev/api/v1';
 const ENDPOINTS = {
     filles_matchs: '/interligues-u14-filles/matchs',
     garcons_matchs: '/interligues-u14-garcons/matchs',
+    garcons_poule_a: '/interligues-u14-garcons-poule-a/matchs',
+    garcons_poule_b: '/interligues-u14-garcons-poule-b/matchs',
     filles_classement: '/interligues-u14-filles/classement'
 };
 
 // Stockage des matchs pour le calcul du classement
 let allMatches = {
     filles: [],
-    garcons: []
+    garcons: [],
+    garcons_poule_a: [],
+    garcons_poule_b: []
 };
 
 // Éléments du DOM
@@ -84,6 +88,9 @@ function createMatchCard(match) {
     const date = match.date || 'Date non disponible';
     const team1 = match.equipe_domicile || 'Équipe Domicile';
     const team2 = match.equipe_exterieur || 'Équipe Extérieur';
+    
+    // Récupérer la poule si elle existe
+    const poule = match.poule ? `<span class="match-poule">${match.poule}</span>` : '';
 
     const card = document.createElement('div');
     card.className = 'match-card';
@@ -91,6 +98,7 @@ function createMatchCard(match) {
         <div class="match-header">
             <span class="match-date">${formatDate(date)}</span>
             <span class="match-time">${formatTime(date)}</span>
+            ${poule}
         </div>
         
         <div class="match-teams">
@@ -112,63 +120,131 @@ function createMatchCard(match) {
 
 // Fonction pour charger les matchs
 async function loadMatches(type) {
-    const endpoint = ENDPOINTS[type === 'filles' ? 'filles_matchs' : 'garcons_matchs'];
-    const containerId = type === 'filles' ? 'matches-filles' : 'matches-garcons';
-    const loadingSpinnerId = type === 'filles' ? 'loading-filles' : 'loading-garcons';
-    const container = document.getElementById(containerId);
-    const spinner = document.getElementById(loadingSpinnerId);
+    if (type === 'garcons') {
+        // Pour les garçons, charger les poules A et B
+        await loadGarconsWithPoules();
+    } else {
+        const endpoint = ENDPOINTS[type === 'filles' ? 'filles_matchs' : 'garcons_matchs'];
+        const containerId = type === 'filles' ? 'matches-filles' : 'matches-garcons';
+        const loadingSpinnerId = type === 'filles' ? 'loading-filles' : 'loading-garcons';
+        const container = document.getElementById(containerId);
+        const spinner = document.getElementById(loadingSpinnerId);
+
+        try {
+            spinner.style.display = 'inline-block';
+            
+            const response = await fetch(`${API_BASE_URL}${endpoint}`);
+            
+            if (!response.ok) {
+                throw new Error(`Erreur API: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            // Vérifier si les données sont un tableau
+            let matches = Array.isArray(data) ? data : data.data || data.matchs || [];
+            
+            if (matches.length === 0) {
+                container.innerHTML = '<p class="loading">Aucun match trouvé pour cette catégorie.</p>';
+                return;
+            }
+
+            // Filtrer les matchs entre le 27 et 30 octobre 2025
+            matches = filterMatchesByDate(matches);
+
+            if (matches.length === 0) {
+                container.innerHTML = '<p class="loading">Aucun match trouvé pour la période 27-30 octobre 2025.</p>';
+                return;
+            }
+
+            // Trier les matchs par date et heure
+            matches.sort((a, b) => {
+                const dateA = new Date(a.date || '');
+                const dateB = new Date(b.date || '');
+                return dateA - dateB;
+            });
+
+            // Créer les cartes
+            container.innerHTML = '';
+            matches.forEach(match => {
+                const card = createMatchCard(match);
+                container.appendChild(card);
+            });
+
+            // Stocker les matchs pour le calcul du classement
+            allMatches[type] = matches;
+
+        } catch (error) {
+            console.error(`Erreur lors du chargement des matchs ${type}:`, error);
+            container.innerHTML = `<p class="loading">Erreur lors du chargement: ${error.message}</p>`;
+            showError(`Impossible de charger les matchs ${type}: ${error.message}`);
+        } finally {
+            spinner.style.display = 'none';
+            // Mettre à jour le classement après avoir chargé les matchs
+            updateClassement();
+        }
+    }
+}
+
+// Fonction pour charger les matchs des garçons avec poules
+async function loadGarconsWithPoules() {
+    const container = document.getElementById('matches-garcons');
+    const spinner = document.getElementById('loading-garcons');
 
     try {
         spinner.style.display = 'inline-block';
         
-        const response = await fetch(`${API_BASE_URL}${endpoint}`);
-        
-        if (!response.ok) {
-            throw new Error(`Erreur API: ${response.status} ${response.statusText}`);
+        // Charger les deux poules en parallèle
+        const [responseA, responseB] = await Promise.all([
+            fetch(`${API_BASE_URL}${ENDPOINTS.garcons_poule_a}`),
+            fetch(`${API_BASE_URL}${ENDPOINTS.garcons_poule_b}`)
+        ]);
+
+        if (!responseA.ok || !responseB.ok) {
+            throw new Error(`Erreur API: Une ou plusieurs requêtes ont échoué`);
         }
 
-        const data = await response.json();
-        
-        // Vérifier si les données sont un tableau
-        let matches = Array.isArray(data) ? data : data.data || data.matchs || [];
-        
-        if (matches.length === 0) {
-            container.innerHTML = '<p class="loading">Aucun match trouvé pour cette catégorie.</p>';
-            return;
-        }
+        const dataA = await responseA.json();
+        const dataB = await responseB.json();
 
-        // Filtrer les matchs entre le 27 et 30 octobre 2025
-        matches = filterMatchesByDate(matches);
+        // Récupérer les matchs
+        let matchesA = (Array.isArray(dataA) ? dataA : dataA.data || dataA.matchs || []).map(m => ({ ...m, poule: 'Poule A' }));
+        let matchesB = (Array.isArray(dataB) ? dataB : dataB.data || dataB.matchs || []).map(m => ({ ...m, poule: 'Poule B' }));
 
-        if (matches.length === 0) {
+        // Combiner et filtrer par date
+        let allMatches_garcons = [...matchesA, ...matchesB];
+        allMatches_garcons = filterMatchesByDate(allMatches_garcons);
+
+        if (allMatches_garcons.length === 0) {
             container.innerHTML = '<p class="loading">Aucun match trouvé pour la période 27-30 octobre 2025.</p>';
             return;
         }
 
-        // Trier les matchs par date et heure
-        matches.sort((a, b) => {
+        // Trier par date et heure
+        allMatches_garcons.sort((a, b) => {
             const dateA = new Date(a.date || '');
             const dateB = new Date(b.date || '');
             return dateA - dateB;
         });
 
-        // Créer les cartes
+        // Afficher les matchs
         container.innerHTML = '';
-        matches.forEach(match => {
+        allMatches_garcons.forEach(match => {
             const card = createMatchCard(match);
             container.appendChild(card);
         });
 
-        // Stocker les matchs pour le calcul du classement
-        allMatches[type] = matches;
+        // Stocker les matchs
+        allMatches.garcons = allMatches_garcons;
+        allMatches.garcons_poule_a = matchesA;
+        allMatches.garcons_poule_b = matchesB;
 
     } catch (error) {
-        console.error(`Erreur lors du chargement des matchs ${type}:`, error);
+        console.error('Erreur lors du chargement des matchs garçons avec poules:', error);
         container.innerHTML = `<p class="loading">Erreur lors du chargement: ${error.message}</p>`;
-        showError(`Impossible de charger les matchs ${type}: ${error.message}`);
+        showError(`Impossible de charger les matchs garçons: ${error.message}`);
     } finally {
         spinner.style.display = 'none';
-        // Mettre à jour le classement après avoir chargé les matchs
         updateClassement();
     }
 }

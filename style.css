@@ -252,6 +252,16 @@ header h1 {
     color: #333;
 }
 
+.match-poule {
+    background: #764ba2;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 .match-teams {
     margin: 15px 0;
 }
@@ -451,6 +461,11 @@ footer {
 
     .match-time {
         font-size: 1em;
+    }
+
+    .match-poule {
+        font-size: 0.75em;
+        padding: 3px 8px;
     }
 
     .team {
