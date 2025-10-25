@@ -18,23 +18,22 @@ Site web pour répertorier les matchs des interlligues U14 de hockey sur gazon d
 
 ## 🚀 Utilisation
 
-### Option 1 : Ouvrir directement le fichier
-1. Ouvrez `index.html` dans votre navigateur web préféré
-2. Les matchs se chargeront automatiquement
+### Accès direct au site en ligne
+**🌐 Site en ligne** : https://interligues-u14-octobre-2025.fly.dev/
 
-### Option 2 : Serveur local (recommandé)
+### Développement local
+Ouvrez `index.html` dans votre navigateur web préféré, ou utilisez un serveur local :
+
 ```bash
 # Avec Python 3
 python -m http.server 8000
 
-# Avec Node.js (si vous avez http-server installé)
+# Avec Node.js (http-server)
 http-server
 
 # Avec PHP
 php -S localhost:8000
 ```
-
-Puis ouvrez `http://localhost:8000` dans votre navigateur.
 
 ## 📊 Structure du projet
 

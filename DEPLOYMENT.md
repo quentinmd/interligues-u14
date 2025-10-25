@@ -26,7 +26,7 @@ Ce dossier contient le site web pour les Interlligues U14 de hockey sur gazon.
    flyctl deploy
    ```
 
-4. **Votre site sera accessible à** : `https://interligues-u14.fly.dev`
+4. **Votre site est en ligne** : `https://interligues-u14-octobre-2025.fly.dev` ✅
 
 ### Avec GitHub Pages
 1. Pousse le code sur GitHub (déjà fait ✅)
