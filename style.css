@@ -2,6 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -9,6 +10,8 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     padding: 20px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -382,6 +385,26 @@ footer {
     .filter-input {
         min-width: 100%;
     }
+
+    .category-buttons {
+        gap: 8px;
+    }
+
+    .category-btn {
+        padding: 10px 20px;
+        font-size: 0.95em;
+        flex: 1;
+        min-width: auto;
+    }
+
+    .classement-table table {
+        font-size: 0.9em;
+    }
+
+    .classement-table th,
+    .classement-table td {
+        padding: 10px 8px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -389,19 +412,175 @@ footer {
         padding: 10px;
     }
 
+    .container {
+        border-radius: 8px;
+    }
+
     header {
-        padding: 20px 15px;
+        padding: 15px 12px;
     }
 
     header h1 {
-        font-size: 1.4em;
+        font-size: 1.3em;
+        margin-bottom: 8px;
+    }
+
+    .date-range {
+        font-size: 0.9em;
     }
 
     .content {
-        padding: 15px 10px;
+        padding: 12px 8px;
     }
 
     .match-card {
+        padding: 12px;
+    }
+
+    .match-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .match-date {
+        padding: 4px 8px;
+        font-size: 0.8em;
+    }
+
+    .match-time {
+        font-size: 1em;
+    }
+
+    .team {
+        padding: 8px 0;
+    }
+
+    .team-name {
+        font-size: 0.95em;
+    }
+
+    .team-score {
+        padding: 4px 12px;
+        font-size: 1em;
+    }
+
+    .match-info {
+        margin-top: 10px;
+        padding-top: 10px;
+        font-size: 0.85em;
+    }
+
+    .match-info-row {
+        margin: 6px 0;
+    }
+
+    .match-status {
+        padding: 3px 8px;
+        font-size: 0.8em;
+        margin-top: 8px;
+    }
+
+    .category-buttons {
+        gap: 6px;
+        margin-bottom: 20px;
+        justify-content: space-between;
+    }
+
+    .category-btn {
+        padding: 8px 12px;
+        font-size: 0.85em;
+        flex: 1;
+        border-radius: 20px;
+        min-width: 0;
+    }
+
+    .section-header {
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .section-header h2 {
+        font-size: 1.15em;
+        flex-shrink: 1;
+    }
+
+    .filter-input {
+        min-width: 100%;
+        padding: 10px 12px;
+        font-size: 16px; /* Empêche le zoom au focus sur iOS */
+        border-radius: 6px;
+    }
+
+    .classement-table {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .classement-table table {
+        font-size: 0.8em;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .classement-table th,
+    .classement-table td {
+        padding: 8px 6px;
+        text-align: center;
+    }
+
+    .classement-table td:first-child,
+    .classement-table th:first-child {
+        text-align: left;
+    }
+
+    .classement-team {
+        text-align: left;
+        min-width: 120px;
+    }
+
+    footer {
+        padding: 15px 10px;
+        font-size: 0.8em;
+    }
+
+    .loading-spinner {
+        font-size: 1.2em;
+    }
+
+    .error-message {
         padding: 15px;
+        font-size: 0.9em;
+        margin: 15px 0;
+    }
+}
+
+/* Ultra petit écran (< 320px) */
+@media (max-width: 320px) {
+    header h1 {
+        font-size: 1.1em;
+    }
+
+    .category-btn {
+        padding: 6px 10px;
+        font-size: 0.75em;
+    }
+
+    .section-header h2 {
+        font-size: 1em;
+    }
+
+    .match-card {
+        padding: 10px;
+    }
+
+    .team-name {
+        font-size: 0.9em;
+    }
+
+    .classement-table table {
+        font-size: 0.75em;
     }
 }

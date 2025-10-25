@@ -202,6 +202,7 @@ window.addEventListener('DOMContentLoaded', () => {
     loadMatches('garcons');
     setupCategoryButtons();
     setupFilters();
+    optimizeMobile();
 });
 
 // Configuration des boutons de catégorie
@@ -455,3 +456,37 @@ function displayMatches(matches, containerId) {
         container.appendChild(card);
     });
 }
+
+// Optimisations pour mobile
+function optimizeMobile() {
+    const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        document.body.style.overscrollBehavior = 'contain';
+        
+        // Empêcher les zoom accidentels sur double-tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            let now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Optimiser les boutons pour le tactile
+        const buttons = document.querySelectorAll('button, .category-btn');
+        buttons.forEach(btn => {
+            btn.style.minHeight = '44px'; // Apple HIG minimum
+            btn.style.minWidth = '44px';
+        });
+
+        // Optimiser les champs input pour mobile
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.style.minHeight = '44px';
+            input.style.fontSize = '16px'; // Empêche le zoom au focus sur iOS
+        });
+    }
+}
+
