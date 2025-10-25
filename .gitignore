@@ -1,0 +1,22 @@
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node (si applicable)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Fichiers locaux
+.env
+.env.local
+
+# Logs
+*.log

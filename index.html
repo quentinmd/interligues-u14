@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interlligues U14 - Hockey sur Gazon (27-30 Octobre 2025)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏑 Interlligues U14 - Hockey sur Gazon</h1>
+            <p class="date-range">27 - 30 Octobre 2025</p>
+        </header>
+
+        <div class="content">
+            <!-- Boutons de sélection -->
+            <div class="category-buttons">
+                <button id="btn-filles" class="category-btn active" data-category="filles">👧 Filles</button>
+                <button id="btn-garcons" class="category-btn" data-category="garcons">👦 Garçons</button>
+                <button id="btn-classement" class="category-btn" data-category="classement">🏆 Classement Filles</button>
+            </div>
+
+            <!-- Section Filles -->
+            <section id="section-filles" class="matches-section active">
+                <div class="section-header">
+                    <h2>👧 Matchs Filles</h2>
+                    <span class="loading-spinner" id="loading-filles" style="display: none;">⏳</span>
+                </div>
+                
+                <!-- Filtres -->
+                <div class="filters">
+                    <input 
+                        type="text" 
+                        id="filter-filles" 
+                        class="filter-input" 
+                        placeholder="🔍 Filtrer par nom d'équipe..."
+                    >
+                </div>
+
+                <div id="matches-filles" class="matches-grid">
+                    <p class="loading">Chargement des matchs...</p>
+                </div>
+            </section>
+
+            <!-- Section Garçons -->
+                        <!-- Section Garçons -->
+            <section id="section-garcons" class="matches-section">
+                <div class="section-header">
+                    <h2>👦 Matchs Garçons</h2>
+                    <span class="loading-spinner" id="loading-garcons" style="display: none;">⏳</span>
+                </div>
+                
+                <!-- Filtres -->
+                <div class="filters">
+                    <input 
+                        type="text" 
+                        id="filter-garcons" 
+                        class="filter-input" 
+                        placeholder="🔍 Filtrer par nom d'équipe..."
+                    >
+                </div>
+
+                <div id="matches-garcons" class="matches-grid">
+                    <p class="loading">Chargement des matchs...</p>
+                </div>
+            </section>
+
+            <!-- Section Classement -->
+            <section id="section-classement" class="matches-section">
+                <div class="section-header">
+                    <h2>🏆 Classement Filles</h2>
+                </div>
+                <div id="classement-filles" class="classement-table">
+                    <p class="loading">En attente de l'API de classement...</p>
+                </div>
+            </section>
+
+            <!-- Section Erreur -->
+            <div id="error-message" class="error-message" style="display: none;"></div>
+        </div>
+
+        <footer>
+            <p>Données provenant de l'API FFHockey</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
