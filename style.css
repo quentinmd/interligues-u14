@@ -676,6 +676,8 @@ footer {
     display: flex;
     border-bottom: 1px solid #e0e0e0;
     background: #f9f9f9;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .modal-tab {
@@ -688,6 +690,9 @@ footer {
     color: #666;
     border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
+    min-width: 130px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .modal-tab:hover {
@@ -751,6 +756,12 @@ footer {
     background: white;
     padding: 15px;
     font-size: 0.95em;
+}
+
+.feuille-content-mobile {
+    background: white;
+    padding: 10px;
+    font-size: 0.85em;
 }
 
 .feuille-content table {
@@ -828,58 +839,157 @@ footer {
     .modal-body {
         padding: 15px;
     }
-}
 
-@media (max-width: 480px) {
-    .modal-content {
-        max-width: 100%;
-        max-height: 100vh;
-        border-radius: 0;
-    }
-
-    .modal-header {
-        border-radius: 0;
-        padding: 15px;
-    }
-
-    .modal-header h2 {
-        font-size: 1.1em;
-    }
-
-    .modal-close {
-        width: 35px;
-        height: 35px;
-        font-size: 1.5em;
-    }
-
-    .modal-tabs {
-        flex-wrap: wrap;
-    }
-
-    .modal-tab {
-        padding: 12px;
-        font-size: 0.9em;
-    }
-
-    .modal-body {
-        padding: 15px;
-    }
-
-    .officiel-card {
-        padding: 12px;
+    .feuille-content table {
+        font-size: 0.85em;
+        margin: 10px 0;
     }
 
     .feuille-content table th,
     .feuille-content table td {
         padding: 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal {
+        padding: 10px;
+    }
+
+    .modal-content {
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        border-radius: 0;
+        padding: 12px;
+        flex-shrink: 0;
+    }
+
+    .modal-header h2 {
+        font-size: 1em;
+        margin: 0;
+        line-height: 1.3;
+    }
+
+    .modal-close {
+        width: 32px;
+        height: 32px;
+        font-size: 1.5em;
+        flex-shrink: 0;
+    }
+
+    .modal-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-shrink: 0;
+    }
+
+    .modal-tab {
+        padding: 10px 12px;
+        font-size: 0.8em;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .modal-body {
+        padding: 10px;
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        font-size: 0.9em;
+    }
+
+    .officiel-card {
+        padding: 10px;
+        margin-bottom: 8px;
+    }
+
+    .officiel-fonction {
+        font-size: 0.75em;
+        margin-bottom: 3px;
+    }
+
+    .officiel-nom {
+        font-size: 0.95em;
+    }
+
+    .officiel-info {
         font-size: 0.8em;
     }
 
+    /* Feuille de match adaptée au mobile */
+    .feuille-content {
+        padding: 10px;
+        font-size: 0.85em;
+    }
+
+    .feuille-content table {
+        font-size: 0.75em;
+        margin: 8px 0;
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border: 1px solid #ddd;
+    }
+
+    .feuille-content table thead {
+        background: #667eea;
+        color: white;
+    }
+
+    .feuille-content table th,
+    .feuille-content table td {
+        padding: 5px 4px;
+        border: 1px solid #ddd;
+        min-width: 60px;
+    }
+
+    .feuille-content table th {
+        font-weight: 600;
+    }
+
     .feuille-content div {
-        margin: 10px 0;
+        margin: 8px 0;
+    }
+
+    .feuille-content div > table {
+        width: 100% !important;
     }
 
     .feuille-content p {
-        font-size: 0.85em;
+        font-size: 0.8em;
+        margin: 6px 0;
+        line-height: 1.4;
+    }
+
+    .feuille-content strong {
+        font-weight: 600;
+    }
+
+    /* Cacher les éléments cosmétiques sur mobile */
+    .feuille-content br {
+        display: none;
+    }
+
+    /* Optimiser l'affichage des divs */
+    .mxg, .mxgcx {
+        margin: 5px 0 !important;
+        padding: 8px !important;
+    }
+
+    /* Tableaux de rapport officiel */
+    .feuille-content table.orbe {
+        width: 100% !important;
+    }
+
+    /* Style pour les sections importantes */
+    .feuille-content > div > table:first-child {
+        margin-bottom: 10px;
+        background: #f9f9f9;
     }
 }

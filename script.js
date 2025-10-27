@@ -678,12 +678,37 @@ function displayFeuilleDeMatch(feuilleHtml) {
         return;
     }
 
-    // Ajouter le HTML directement avec un conteneur scrollable
-    content.innerHTML = `
-        <div class="feuille-content">
-            ${feuilleHtml}
-        </div>
-    `;
+    // Sur mobile, simplifier l'affichage
+    const isMobile = window.innerWidth < 768;
+    
+    if (isMobile) {
+        // Créer une version simplifiée pour mobile
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(feuilleHtml, 'text/html');
+        
+        let html = '<div class="feuille-content-mobile">';
+        
+        // Extraire les informations principales
+        const allText = doc.body.innerText;
+        
+        // Afficher le HTML complet mais avec styling adapté
+        html += '<style>';
+        html += 'table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 10px 0; }';
+        html += 'tr { display: table; width: 100%; }';
+        html += 'th, td { padding: 4px; font-size: 0.75em; }';
+        html += '</style>';
+        html += feuilleHtml;
+        html += '</div>';
+        
+        content.innerHTML = html;
+    } else {
+        // Sur desktop, afficher comme avant
+        content.innerHTML = `
+            <div class="feuille-content">
+                ${feuilleHtml}
+            </div>
+        `;
+    }
 }
 
 // Fonction pour afficher un onglet
