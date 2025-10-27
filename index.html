@@ -84,6 +84,28 @@
             <div id="error-message" class="error-message" style="display: none;"></div>
         </div>
 
+        <!-- Modale pour les détails du match -->
+        <div id="match-details-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-title">Détails du match</h2>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-tabs">
+                    <button class="modal-tab active" data-tab="officiels">🧑‍⚖️ Officiels</button>
+                    <button class="modal-tab" data-tab="feuille">📋 Feuille de match</button>
+                </div>
+                <div class="modal-body">
+                    <div id="modal-tab-content-officiels" class="modal-tab-content active">
+                        <p class="loading">Chargement des officiels...</p>
+                    </div>
+                    <div id="modal-tab-content-feuille" class="modal-tab-content">
+                        <p class="loading">Chargement de la feuille de match...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <footer>
             <p>Données provenant de l'API FFHockey</p>
         </footer>

@@ -279,6 +279,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setupCategoryButtons();
     setupFilters();
     optimizeMobile();
+    setupMatchModal();
 });
 
 // Configuration des boutons de catégorie
@@ -564,5 +565,265 @@ function optimizeMobile() {
             input.style.fontSize = '16px'; // Empêche le zoom au focus sur iOS
         });
     }
+}
+
+// ===== GESTION DE LA MODALE =====
+
+let currentMatchInModal = null;
+
+// Fonction pour ouvrir la modale
+async function openMatchModal(match) {
+    const modal = document.getElementById('match-details-modal');
+    currentMatchInModal = match;
+
+    // Afficher la modale
+    modal.classList.add('active');
+
+    // Charger les officiels et la feuille de match
+    await loadMatchDetails(match.renc_id);
+
+    // Afficher le premier onglet par défaut
+    showModalTab('officiels');
+}
+
+// Fonction pour fermer la modale
+function closeMatchModal() {
+    const modal = document.getElementById('match-details-modal');
+    modal.classList.remove('active');
+    currentMatchInModal = null;
+}
+
+// Fonction pour charger les détails du match (officiels et feuille de match)
+async function loadMatchDetails(rencId) {
+    try {
+        // Charger les officiels et la feuille de match en parallèle
+        const [officielsResponse, feuilleResponse] = await Promise.all([
+            fetch(`${API_BASE_URL}/match/${rencId}/officiels`),
+            fetch(`${API_BASE_URL}/match/${rencId}/feuille-de-match`)
+        ]);
+
+        // Charger les officiels
+        if (officielsResponse.ok) {
+            const officiels = await officielsResponse.json();
+            displayOfficiels(officiels);
+        } else {
+            displayOfficiels([]);
+        }
+
+        // Charger la feuille de match
+        if (feuilleResponse.ok) {
+            const feuille = await feuilleResponse.text();
+            displayFeuilleDeMatch(feuille);
+        } else {
+            displayFeuilleDeMatch('<p>Feuille de match non disponible</p>');
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement des détails du match:', error);
+        displayOfficiels([]);
+        displayFeuilleDeMatch('<p>Erreur lors du chargement des détails</p>');
+    }
+}
+
+// Fonction pour afficher les officiels
+function displayOfficiels(officiels) {
+    const content = document.getElementById('modal-tab-content-officiels');
+    
+    if (!officiels || officiels.length === 0) {
+        content.innerHTML = '<p class="loading">Aucun officiel disponible pour ce match.</p>';
+        return;
+    }
+
+    let html = '<div class="officiels-list">';
+
+    // Créer une liste des officiels avec leurs rôles
+    officiels.forEach(officiel => {
+        const nom = officiel.nom || officiel.name || 'Non disponible';
+        const fonction = officiel.fonction || officiel.role || officiel.position || 'Rôle';
+        const info = officiel.club || officiel.association || '';
+
+        html += `
+            <div class="officiel-card">
+                <div class="officiel-fonction">${fonction}</div>
+                <div class="officiel-nom">${nom}</div>
+                ${info ? `<div class="officiel-info">${info}</div>` : ''}
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    content.innerHTML = html;
+}
+
+// Fonction pour afficher la feuille de match
+function displayFeuilleDeMatch(feuilleHtml) {
+    const content = document.getElementById('modal-tab-content-feuille');
+    
+    if (!feuilleHtml) {
+        content.innerHTML = '<p class="loading">Feuille de match non disponible.</p>';
+        return;
+    }
+
+    // Si c'est du HTML, créer un iframe pour l'afficher de manière sûre
+    const iframe = document.createElement('iframe');
+    iframe.style.width = '100%';
+    iframe.style.height = '600px';
+    iframe.style.border = '1px solid #e0e0e0';
+    iframe.style.borderRadius = '8px';
+    iframe.sandbox.add('allow-same-origin');
+    
+    content.innerHTML = '';
+    content.appendChild(iframe);
+    
+    // Écrire le contenu dans l'iframe
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(feuilleHtml);
+    iframeDoc.close();
+}
+
+// Fonction pour afficher un onglet
+function showModalTab(tabName) {
+    // Masquer tous les contenus
+    document.querySelectorAll('.modal-tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Désactiver tous les boutons d'onglet
+    document.querySelectorAll('.modal-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Afficher l'onglet sélectionné
+    const content = document.getElementById(`modal-tab-content-${tabName}`);
+    if (content) {
+        content.classList.add('active');
+    }
+
+    // Activer le bouton d'onglet sélectionné
+    const btn = document.querySelector(`[data-tab="${tabName}"]`);
+    if (btn) {
+        btn.classList.add('active');
+    }
+}
+
+// Initialiser la modale au chargement
+function setupMatchModal() {
+    const modal = document.getElementById('match-details-modal');
+    const closeBtn = document.querySelector('.modal-close');
+    const tabs = document.querySelectorAll('.modal-tab');
+
+    // Fermer au clic sur le bouton fermer
+    closeBtn.addEventListener('click', closeMatchModal);
+
+    // Fermer au clic sur le fond (backdrop)
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeMatchModal();
+        }
+    });
+
+    // Onglets
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            const tabName = e.target.dataset.tab;
+            showModalTab(tabName);
+        });
+    });
+}
+
+// Fonction pour ajouter les événements click sur les cartes de match
+function setupMatchCardClickHandlers() {
+    document.addEventListener('click', (e) => {
+        const matchCard = e.target.closest('.match-card');
+        if (matchCard) {
+            // Récupérer le match depuis les données stockées
+            const matchTeams = matchCard.querySelector('.team-name');
+            if (matchTeams) {
+                // Chercher le match dans allMatches
+                const matchText = matchCard.textContent;
+                
+                // Chercher dans les matchs filles
+                let match = allMatches.filles.find(m => {
+                    return matchCard.innerHTML.includes(m.equipe_domicile) && 
+                           matchCard.innerHTML.includes(m.equipe_exterieur);
+                });
+
+                // Sinon chercher dans les matchs garçons
+                if (!match) {
+                    match = allMatches.garcons.find(m => {
+                        return matchCard.innerHTML.includes(m.equipe_domicile) && 
+                               matchCard.innerHTML.includes(m.equipe_exterieur);
+                    });
+                }
+
+                if (match && match.renc_id) {
+                    openMatchModal(match);
+                }
+            }
+        }
+    });
+}
+
+// Mettre à jour createMatchCard pour stocker l'ID
+function createMatchCardWithId(match) {
+    const card = createMatchCard(match);
+    card.dataset.rencId = match.renc_id;
+    card.dataset.matchTeams = `${match.equipe_domicile}|${match.equipe_exterieur}`;
+    return card;
+}
+
+// Remplacer createMatchCard pour utiliser la nouvelle version
+function createMatchCard(match) {
+    const status = getMatchStatus(match);
+    const statusText = getStatusText(status);
+    const statusClass = getStatusClass(status);
+
+    // Utiliser les scores depuis l'API, sinon afficher "-"
+    const scoreDomicile = match.score_domicile || '-';
+    const scoreExterieur = match.score_exterieur || '-';
+
+    const date = match.date || 'Date non disponible';
+    const team1 = match.equipe_domicile || 'Équipe Domicile';
+    const team2 = match.equipe_exterieur || 'Équipe Extérieur';
+    
+    // Récupérer la poule si elle existe
+    const poule = match.poule ? `<span class="match-poule">${match.poule}</span>` : '';
+
+    const card = document.createElement('div');
+    card.className = 'match-card';
+    card.dataset.rencId = match.renc_id;
+    card.dataset.matchTeams = `${team1}|${team2}`;
+    card.style.cursor = 'pointer';
+    card.innerHTML = `
+        <div class="match-header">
+            <span class="match-date">${formatDate(date)}</span>
+            <span class="match-time">${formatTime(date)}</span>
+            ${poule}
+        </div>
+        
+        <div class="match-teams">
+            <div class="team">
+                <span class="team-name">${team1}</span>
+                <span class="team-score">${scoreDomicile}</span>
+            </div>
+            <div class="team">
+                <span class="team-name">${team2}</span>
+                <span class="team-score">${scoreExterieur}</span>
+            </div>
+        </div>
+
+        <div class="match-status ${statusClass}">${statusText}</div>
+    `;
+
+    // Ajouter l'événement click
+    card.addEventListener('click', async (e) => {
+        const match = allMatches.filles.find(m => m.renc_id === card.dataset.rencId) ||
+                      allMatches.garcons.find(m => m.renc_id === card.dataset.rencId);
+        if (match) {
+            openMatchModal(match);
+        }
+    });
+
+    return card;
 }
 
