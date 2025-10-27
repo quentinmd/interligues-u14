@@ -576,11 +576,15 @@ async function openMatchModal(match) {
     const modal = document.getElementById('match-details-modal');
     currentMatchInModal = match;
 
+    console.log('Ouverture modale pour le match:', match);
+
     // Afficher la modale
     modal.classList.add('active');
 
     // Charger les officiels et la feuille de match
-    await loadMatchDetails(match.renc_id);
+    const rencId = match.rencId || match.renc_id;
+    console.log('RencId utilisé:', rencId);
+    await loadMatchDetails(rencId);
 
     // Afficher le premier onglet par défaut
     showModalTab('officiels');
@@ -604,7 +608,8 @@ async function loadMatchDetails(rencId) {
 
         // Charger les officiels
         if (officielsResponse.ok) {
-            const officiels = await officielsResponse.json();
+            const response = await officielsResponse.json();
+            const officiels = response.data || response.officiels || [];
             displayOfficiels(officiels);
         } else {
             displayOfficiels([]);
@@ -637,15 +642,16 @@ function displayOfficiels(officiels) {
 
     // Créer une liste des officiels avec leurs rôles
     officiels.forEach(officiel => {
-        const nom = officiel.nom || officiel.name || 'Non disponible';
-        const fonction = officiel.fonction || officiel.role || officiel.position || 'Rôle';
-        const info = officiel.club || officiel.association || '';
+        const nom = officiel.nom || 'Non disponible';
+        const fonction = officiel.fonction || 'Rôle inconnu';
+        const licence = officiel.licence || '';
+        const civilite = officiel.civilite || '';
 
         html += `
             <div class="officiel-card">
-                <div class="officiel-fonction">${fonction}</div>
+                <div class="officiel-fonction">🧑‍⚖️ ${fonction}</div>
                 <div class="officiel-nom">${nom}</div>
-                ${info ? `<div class="officiel-info">${info}</div>` : ''}
+                ${licence ? `<div class="officiel-info">📋 Licence: ${licence}</div>` : ''}
             </div>
         `;
     });
@@ -791,7 +797,7 @@ function createMatchCard(match) {
 
     const card = document.createElement('div');
     card.className = 'match-card';
-    card.dataset.rencId = match.renc_id;
+    card.dataset.rencId = match.rencId || match.renc_id;
     card.dataset.matchTeams = `${team1}|${team2}`;
     card.style.cursor = 'pointer';
     card.innerHTML = `
@@ -817,8 +823,10 @@ function createMatchCard(match) {
 
     // Ajouter l'événement click
     card.addEventListener('click', async (e) => {
-        const match = allMatches.filles.find(m => m.renc_id === card.dataset.rencId) ||
-                      allMatches.garcons.find(m => m.renc_id === card.dataset.rencId);
+        const rencId = card.dataset.rencId;
+        const match = allMatches.filles.find(m => (m.rencId || m.renc_id) === rencId) ||
+                      allMatches.garcons.find(m => (m.rencId || m.renc_id) === rencId);
+        console.log('Match trouvé au clic:', match, 'RencId:', rencId);
         if (match) {
             openMatchModal(match);
         }
