@@ -581,6 +581,14 @@ async function openMatchModal(match) {
     // Afficher la modale
     modal.classList.add('active');
 
+    // Mettre à jour le titre avec les infos du match
+    const modalTitle = document.getElementById('modal-title');
+    const team1 = match.equipe_domicile || 'Équipe 1';
+    const team2 = match.equipe_exterieur || 'Équipe 2';
+    const score1 = match.score_domicile || '-';
+    const score2 = match.score_exterieur || '-';
+    modalTitle.textContent = `${team1} ${score1} - ${score2} ${team2}`;
+
     // Charger les officiels et la feuille de match
     const rencId = match.rencId || match.renc_id;
     console.log('RencId utilisé:', rencId);
@@ -617,15 +625,16 @@ async function loadMatchDetails(rencId) {
 
         // Charger la feuille de match
         if (feuilleResponse.ok) {
-            const feuille = await feuilleResponse.text();
-            displayFeuilleDeMatch(feuille);
+            const feuilleData = await feuilleResponse.json();
+            const html = feuilleData.html || '';
+            displayFeuilleDeMatch(html);
         } else {
-            displayFeuilleDeMatch('<p>Feuille de match non disponible</p>');
+            displayFeuilleDeMatch('');
         }
     } catch (error) {
         console.error('Erreur lors du chargement des détails du match:', error);
         displayOfficiels([]);
-        displayFeuilleDeMatch('<p>Erreur lors du chargement des détails</p>');
+        displayFeuilleDeMatch('');
     }
 }
 
@@ -669,22 +678,70 @@ function displayFeuilleDeMatch(feuilleHtml) {
         return;
     }
 
-    // Si c'est du HTML, créer un iframe pour l'afficher de manière sûre
-    const iframe = document.createElement('iframe');
-    iframe.style.width = '100%';
-    iframe.style.height = '600px';
-    iframe.style.border = '1px solid #e0e0e0';
-    iframe.style.borderRadius = '8px';
-    iframe.sandbox.add('allow-same-origin');
+    // Créer un lien pour ouvrir la feuille de match dans un nouvel onglet
+    const rencId = currentMatchInModal?.rencId || currentMatchInModal?.renc_id;
     
-    content.innerHTML = '';
-    content.appendChild(iframe);
+    let html = '<div class="feuille-content">';
+    html += '<p style="margin-bottom: 20px; text-align: center;">';
+    html += '<a href="#" id="open-feuille-full" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; cursor: pointer;">🔗 Ouvrir la feuille complète dans un nouvel onglet</a>';
+    html += '</p>';
     
-    // Écrire le contenu dans l'iframe
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-    iframeDoc.open();
-    iframeDoc.write(feuilleHtml);
-    iframeDoc.close();
+    // Afficher un aperçu de la feuille
+    html += '<div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; margin-top: 15px;">';
+    html += '<h3 style="margin-top: 0; color: #667eea;">📋 Aperçu de la feuille de match</h3>';
+    html += '<p style="font-size: 0.9em; color: #666;">La feuille de match complète contient : équipes, listes de joueurs, buteurs, blessures, arbitres et officiels.</p>';
+    html += '<p style="font-size: 0.85em; color: #999; margin-top: 10px;">Cliquez sur le lien ci-dessus pour voir la version complète formatée.</p>';
+    html += '</div>';
+    html += '</div>';
+    
+    content.innerHTML = html;
+    
+    // Ajouter l'événement au lien
+    document.getElementById('open-feuille-full').addEventListener('click', (e) => {
+        e.preventDefault();
+        openFeuilleDeMatchInNewTab(rencId);
+    });
+}
+
+// Fonction pour ouvrir la feuille de match dans un nouvel onglet
+async function openFeuilleDeMatchInNewTab(rencId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/match/${rencId}/feuille-de-match`);
+        if (response.ok) {
+            const data = await response.json();
+            const html = data.html || '';
+            
+            // Créer une nouvelle fenêtre
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="fr">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Feuille de match</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            margin: 20px;
+                            background: white;
+                        }
+                        @media print {
+                            body { margin: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${html}
+                </body>
+                </html>
+            `);
+            newWindow.document.close();
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Impossible de charger la feuille de match');
+    }
 }
 
 // Fonction pour afficher un onglet
