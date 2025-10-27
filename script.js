@@ -678,70 +678,12 @@ function displayFeuilleDeMatch(feuilleHtml) {
         return;
     }
 
-    // Créer un lien pour ouvrir la feuille de match dans un nouvel onglet
-    const rencId = currentMatchInModal?.rencId || currentMatchInModal?.renc_id;
-    
-    let html = '<div class="feuille-content">';
-    html += '<p style="margin-bottom: 20px; text-align: center;">';
-    html += '<a href="#" id="open-feuille-full" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; cursor: pointer;">🔗 Ouvrir la feuille complète dans un nouvel onglet</a>';
-    html += '</p>';
-    
-    // Afficher un aperçu de la feuille
-    html += '<div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; margin-top: 15px;">';
-    html += '<h3 style="margin-top: 0; color: #667eea;">📋 Aperçu de la feuille de match</h3>';
-    html += '<p style="font-size: 0.9em; color: #666;">La feuille de match complète contient : équipes, listes de joueurs, buteurs, blessures, arbitres et officiels.</p>';
-    html += '<p style="font-size: 0.85em; color: #999; margin-top: 10px;">Cliquez sur le lien ci-dessus pour voir la version complète formatée.</p>';
-    html += '</div>';
-    html += '</div>';
-    
-    content.innerHTML = html;
-    
-    // Ajouter l'événement au lien
-    document.getElementById('open-feuille-full').addEventListener('click', (e) => {
-        e.preventDefault();
-        openFeuilleDeMatchInNewTab(rencId);
-    });
-}
-
-// Fonction pour ouvrir la feuille de match dans un nouvel onglet
-async function openFeuilleDeMatchInNewTab(rencId) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/match/${rencId}/feuille-de-match`);
-        if (response.ok) {
-            const data = await response.json();
-            const html = data.html || '';
-            
-            // Créer une nouvelle fenêtre
-            const newWindow = window.open('', '_blank');
-            newWindow.document.write(`
-                <!DOCTYPE html>
-                <html lang="fr">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Feuille de match</title>
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            margin: 20px;
-                            background: white;
-                        }
-                        @media print {
-                            body { margin: 0; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    ${html}
-                </body>
-                </html>
-            `);
-            newWindow.document.close();
-        }
-    } catch (error) {
-        console.error('Erreur:', error);
-        alert('Impossible de charger la feuille de match');
-    }
+    // Ajouter le HTML directement avec un conteneur scrollable
+    content.innerHTML = `
+        <div class="feuille-content">
+            ${feuilleHtml}
+        </div>
+    `;
 }
 
 // Fonction pour afficher un onglet

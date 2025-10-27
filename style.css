@@ -750,6 +750,47 @@ footer {
 .feuille-content {
     background: white;
     padding: 15px;
+    font-size: 0.95em;
+}
+
+.feuille-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 0.9em;
+}
+
+.feuille-content table th,
+.feuille-content table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.feuille-content table th {
+    background: #667eea;
+    color: white;
+    font-weight: 600;
+}
+
+.feuille-content table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.feuille-content table tr:hover {
+    background: #f0f0f0;
+}
+
+.feuille-content div {
+    margin: 15px 0;
+}
+
+.feuille-content p {
+    margin: 10px 0;
+}
+
+.feuille-content strong {
+    color: #333;
 }
 
 .feuille-content a {
@@ -761,6 +802,7 @@ footer {
     border-radius: 8px;
     font-weight: 600;
     transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 10px;
 }
 
 .feuille-content a:hover {
@@ -827,7 +869,17 @@ footer {
         padding: 12px;
     }
 
-    .feuille-content iframe {
-        height: 300px;
+    .feuille-content table th,
+    .feuille-content table td {
+        padding: 6px;
+        font-size: 0.8em;
+    }
+
+    .feuille-content div {
+        margin: 10px 0;
+    }
+
+    .feuille-content p {
+        font-size: 0.85em;
     }
 }
