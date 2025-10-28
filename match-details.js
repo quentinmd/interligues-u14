@@ -416,11 +416,8 @@ function displayFeuilleDeMatch(feuilleHtml) {
         container.innerHTML = feuilleHtml;
     }
 
-    // Sur mobile, créer une vue simplifiée
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-        displayFeuilleDeMatchMobile(feuilleHtml);
-    }
+    // Afficher la vue simplifiée (mobile et desktop)
+    displayFeuilleDeMatchMobile(feuilleHtml);
 }
 
 // Fonction pour afficher la feuille en version mobile (simplifiée)
