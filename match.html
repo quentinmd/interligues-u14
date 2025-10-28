@@ -55,9 +55,10 @@
 
         .match-hero-content {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 40px;
+            gap: 15px;
             flex-wrap: wrap;
             max-width: 900px;
             margin: 0 auto;
@@ -67,9 +68,10 @@
             flex: 1;
             min-width: 140px;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            justify-content: center;
         }
 
         .team-avatar {
@@ -85,6 +87,7 @@
             color: white;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             border: 2px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
         }
 
         .team-name {
@@ -103,6 +106,7 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
+            margin: 10px 0;
         }
 
         .score-display {
@@ -676,7 +680,7 @@
             }
 
             .match-hero-content {
-                gap: 30px;
+                gap: 15px;
             }
 
             #feuille-content table {
@@ -697,6 +701,10 @@
                 gap: 10px;
             }
 
+            .team-hero {
+                gap: 8px;
+            }
+
             .team-avatar {
                 width: 60px;
                 height: 60px;
@@ -704,7 +712,7 @@
             }
 
             .team-name {
-                font-size: 0.75em;
+                font-size: 0.8em;
                 max-width: 120px;
             }
 
