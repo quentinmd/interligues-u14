@@ -669,6 +669,71 @@ function displayOfficiels(officiels) {
     content.innerHTML = html;
 }
 
+// Fonction pour nettoyer et simplifier la feuille de match
+function cleanFeuilleDeMatch(feuilleHtml) {
+    // Créer un parseur DOM
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(feuilleHtml, 'text/html');
+    
+    // Supprimer les styles (ils vont interférer avec notre CSS)
+    const styles = doc.querySelectorAll('style');
+    styles.forEach(style => style.remove());
+    
+    // Créer une structure nettoyée
+    let cleanHtml = '';
+    
+    // Parcourir tous les divs et garder les importants
+    const allDivs = Array.from(doc.querySelectorAll('div.mxg, div.mxgcx, table, div'));
+    
+    for (let element of allDivs) {
+        const text = element.innerText || '';
+        const html = element.outerHTML || '';
+        
+        // Critères pour garder l'élément
+        const isImportant = 
+            // En-têtes de match
+            text.includes('RAPPORT OFFICIEL') ||
+            text.includes('EPREUVE') ||
+            text.includes('Date') ||
+            text.includes('Horaire') ||
+            text.includes('Terrain') ||
+            // Infos équipes
+            text.includes('CLUB VISITE') ||
+            text.includes('CLUB VISITEUR') ||
+            text.includes('Buts en chiffres') ||
+            text.includes('Fair-Play') ||
+            // Listes de joueurs (tableaux)
+            text.match(/N° Licencié.*N° Maillot/) ||
+            text.match(/N° Maillot.*Nom Prénom/) ||
+            // Buteurs et blessures
+            text.includes('Buteurs') ||
+            text.includes('Blessures') ||
+            // Ramasseurs
+            text.includes('Ramasseurs') ||
+            // Officiels
+            text.includes('Arbitre') ||
+            text.includes('Délégué') ||
+            text.includes('Capitaine') ||
+            text.includes('Chef d\'équipe') ||
+            text.includes('Entraîneur') ||
+            // Tables de joueurs
+            element.tagName === 'TABLE' && (text.includes('Licencié') || text.includes('Maillot'));
+        
+        if (isImportant && element.tagName !== 'DIV') {
+            cleanHtml += html;
+        } else if (isImportant && element.tagName === 'DIV' && text.length > 50) {
+            cleanHtml += html;
+        }
+    }
+    
+    if (!cleanHtml) {
+        // Si le nettoyage a supprimé tout, retourner l'original
+        cleanHtml = feuilleHtml;
+    }
+    
+    return cleanHtml;
+}
+
 // Fonction pour afficher la feuille de match
 function displayFeuilleDeMatch(feuilleHtml) {
     const content = document.getElementById('modal-tab-content-feuille');
@@ -678,34 +743,24 @@ function displayFeuilleDeMatch(feuilleHtml) {
         return;
     }
 
-    // Sur mobile, simplifier l'affichage
+    // Nettoyer la feuille de match
+    const cleanedHtml = cleanFeuilleDeMatch(feuilleHtml);
+    
+    // Sur mobile, simplifier davantage l'affichage
     const isMobile = window.innerWidth < 768;
     
     if (isMobile) {
-        // Créer une version simplifiée pour mobile
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(feuilleHtml, 'text/html');
-        
-        let html = '<div class="feuille-content-mobile">';
-        
-        // Extraire les informations principales
-        const allText = doc.body.innerText;
-        
-        // Afficher le HTML complet mais avec styling adapté
-        html += '<style>';
-        html += 'table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 10px 0; }';
-        html += 'tr { display: table; width: 100%; }';
-        html += 'th, td { padding: 4px; font-size: 0.75em; }';
-        html += '</style>';
-        html += feuilleHtml;
-        html += '</div>';
-        
-        content.innerHTML = html;
+        // Version simplifiée pour mobile
+        content.innerHTML = `
+            <div class="feuille-content-mobile">
+                ${cleanedHtml}
+            </div>
+        `;
     } else {
-        // Sur desktop, afficher comme avant
+        // Version complète pour desktop
         content.innerHTML = `
             <div class="feuille-content">
-                ${feuilleHtml}
+                ${cleanedHtml}
             </div>
         `;
     }

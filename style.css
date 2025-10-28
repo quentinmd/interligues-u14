@@ -764,7 +764,13 @@ footer {
     font-size: 0.85em;
 }
 
-.feuille-content table {
+.feuille-cleaned {
+    width: 100%;
+}
+
+.feuille-content table,
+.feuille-content-mobile table,
+.feuille-cleaned table {
     width: 100%;
     border-collapse: collapse;
     margin: 15px 0;
@@ -772,39 +778,57 @@ footer {
 }
 
 .feuille-content table th,
-.feuille-content table td {
+.feuille-content table td,
+.feuille-content-mobile table th,
+.feuille-content-mobile table td,
+.feuille-cleaned table th,
+.feuille-cleaned table td {
     padding: 8px;
     border: 1px solid #ddd;
     text-align: left;
 }
 
-.feuille-content table th {
+.feuille-content table th,
+.feuille-content-mobile table th,
+.feuille-cleaned table th {
     background: #667eea;
     color: white;
     font-weight: 600;
 }
 
-.feuille-content table tr:nth-child(even) {
+.feuille-content table tr:nth-child(even),
+.feuille-content-mobile table tr:nth-child(even),
+.feuille-cleaned table tr:nth-child(even) {
     background: #f9f9f9;
 }
 
-.feuille-content table tr:hover {
+.feuille-content table tr:hover,
+.feuille-content-mobile table tr:hover,
+.feuille-cleaned table tr:hover {
     background: #f0f0f0;
 }
 
-.feuille-content div {
+.feuille-content div,
+.feuille-content-mobile div,
+.feuille-cleaned div {
     margin: 15px 0;
 }
 
-.feuille-content p {
+.feuille-content p,
+.feuille-content-mobile p,
+.feuille-cleaned p {
     margin: 10px 0;
 }
 
-.feuille-content strong {
+.feuille-content strong,
+.feuille-content-mobile strong,
+.feuille-cleaned strong {
     color: #333;
 }
 
-.feuille-content a {
+.feuille-content a,
+.feuille-content-mobile a,
+.feuille-cleaned a {
     display: inline-block;
     padding: 12px 24px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -816,12 +840,16 @@ footer {
     margin-top: 10px;
 }
 
-.feuille-content a:hover {
+.feuille-content a:hover,
+.feuille-content-mobile a:hover,
+.feuille-cleaned a:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
-.feuille-content a:active {
+.feuille-content a:active,
+.feuille-content-mobile a:active,
+.feuille-cleaned a:active {
     transform: translateY(0);
 }
 
