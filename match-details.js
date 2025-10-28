@@ -120,21 +120,13 @@ function displayMatchInfo(info) {
     avatar1.textContent = (info.equipe1 || 'E').charAt(0).toUpperCase();
     avatar2.textContent = (info.equipe2 || 'E').charAt(0).toUpperCase();
     
-    // Date et heure
+    // Date, heure et terrain
     document.getElementById('match-date').textContent = info.date ? `${info.date} - ${info.heure}` : 'Date non disponible';
+    document.getElementById('match-terrain').textContent = info.terrain || 'Terrain non disponible';
     
-    // Afficher les infos détaillées
+    // Afficher les infos détaillées (vide pour l'instant)
     const container = document.getElementById('match-info');
-    container.innerHTML = `
-        <div class="info-item">
-            <div class="info-label">📍 Terrain</div>
-            <div class="info-value">${info.terrain || 'Non disponible'}</div>
-        </div>
-        <div class="info-item">
-            <div class="info-label">⚽ Score final</div>
-            <div class="info-value">${info.score1} - ${info.score2}</div>
-        </div>
-    `;
+    container.innerHTML = '';
 }
 
 // Fonction pour afficher les officiels

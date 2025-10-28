@@ -45,7 +45,7 @@
         }
 
         .match-hero {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 40px 20px;
             border-radius: 15px;
@@ -75,7 +75,7 @@
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -83,6 +83,7 @@
             font-weight: bold;
             color: white;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
         .team-name {
@@ -125,6 +126,9 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .info-item {
@@ -201,6 +205,41 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 10px;
+        }
+
+        @media (min-width: 1024px) {
+            .buteurs-list {
+                grid-template-columns: 1fr;
+            }
+
+            .team-section:first-child .but-item {
+                display: inline-flex;
+                flex-direction: column;
+                align-items: flex-start;
+                width: auto;
+                margin-right: 15px;
+                margin-bottom: 10px;
+            }
+
+            #buteurs-content > .team-section {
+                display: flex;
+                flex-direction: column;
+            }
+
+            #buteurs-content > .team-section h3 {
+                width: 100%;
+            }
+
+            #buteurs-content > .team-section .but-item {
+                display: inline-block;
+                background: #f9f9f9;
+                padding: 12px 15px;
+                border-radius: 8px;
+                border-left: 4px solid #667eea;
+                margin-right: 12px;
+                margin-bottom: 10px;
+                width: auto;
+            }
         }
 
         .but-item,
@@ -493,7 +532,7 @@
             </div>
             <div class="match-date-time">
                 <div id="match-date">Date</div>
-                <div id="match-time">Heure</div>
+                <div id="match-terrain">Terrain</div>
             </div>
         </div>
 
