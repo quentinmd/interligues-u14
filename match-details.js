@@ -7,75 +7,53 @@ function getRencIdFromURL() {
     return params.get('rencId');
 }
 
-// Fonction pour parser les buteurs depuis la feuille de match HTML
-function parseButeurs(html) {
+// Extraire les infos du match depuis la feuille HTML
+function extractMatchInfo(html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    const buteurs = [];
+    const text = doc.body.innerText;
 
-    // Chercher les sections de buteurs
-    const allText = doc.body.innerText;
-    const buteursSections = allText.split('Buteurs :');
+    const info = {
+        date: '',
+        heure: '',
+        terrain: '',
+        equipe1: '',
+        equipe2: '',
+        score1: '',
+        score2: ''
+    };
 
-    for (let i = 1; i < buteursSections.length; i++) {
-        const section = buteursSections[i].split('Blessures')[0];
-        const lines = section.split('\n').filter(l => l.trim());
-        
-        for (let line of lines) {
-            // Chercher les patterns comme "N°7 (x1)"
-            const matches = line.match(/N°(\d+)\s*\(x(\d+)\)/g);
-            if (matches) {
-                for (let match of matches) {
-                    const numMatch = match.match(/N°(\d+)\s*\(x(\d+)\)/);
-                    if (numMatch) {
-                        buteurs.push({
-                            numero: numMatch[1],
-                            buts: numMatch[2],
-                            equipe: i === 1 ? 'domicile' : 'exterieur'
-                        });
-                    }
-                }
-            }
-        }
+    // Extraire date
+    const dateMatch = text.match(/Date :\s*(\d{1,2}\/\d{1,2}\/\d{4})/);
+    if (dateMatch) info.date = dateMatch[1];
+
+    // Extraire heure
+    const heureMatch = text.match(/Horaire :\s*(\d{1,2}:\d{2})/);
+    if (heureMatch) info.heure = heureMatch[1];
+
+    // Extraire terrain
+    const terrainMatch = text.match(/Terrain :\s*([^\n]+)/);
+    if (terrainMatch) info.terrain = terrainMatch[1].trim();
+
+    // Extraire équipes
+    const equipe1Match = text.match(/CLUB VISITE[^N]*NOM :\s*([^\n]+)/);
+    const equipe2Match = text.match(/CLUB VISITEUR[^N]*NOM :\s*([^\n]+)/);
+    
+    if (equipe1Match) info.equipe1 = equipe1Match[1].trim();
+    if (equipe2Match) info.equipe2 = equipe2Match[1].trim();
+
+    // Extraire scores
+    const scoreMatches = text.match(/Buts en chiffres :\s*(\d+)/g);
+    if (scoreMatches && scoreMatches.length >= 2) {
+        info.score1 = scoreMatches[0].match(/(\d+)/)[1];
+        info.score2 = scoreMatches[1].match(/(\d+)/)[1];
     }
 
-    return buteurs;
+    return info;
 }
 
-// Fonction pour parser les cartons depuis la feuille de match HTML
-function parseCartons(html) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const cartons = [];
-
-    // Chercher les éléments avec classes de cartons
-    const yellowCards = doc.querySelectorAll('[class*="CartonJaune"], .txt-orange');
-    const redCards = doc.querySelectorAll('[class*="CartonRouge"]');
-
-    // Parser les cartons jaunes
-    yellowCards.forEach(card => {
-        const text = card.textContent.trim();
-        if (text && text.length > 0) {
-            cartons.push({
-                joueur: text,
-                type: 'yellow'
-            });
-        }
-    });
-
-    // Parser les cartons rouges
-    redCards.forEach(card => {
-        const text = card.textContent.trim();
-        if (text && text.length > 0) {
-            cartons.push({
-                joueur: text,
-                type: 'red'
-            });
-        }
-    });
-
-    return cartons;
-}
+// Stocker les officiels complets pour la vue complète
+let allOfficials = [];
 
 // Fonction pour charger et afficher les détails du match
 async function loadMatchDetails() {
@@ -87,28 +65,36 @@ async function loadMatchDetails() {
     }
 
     try {
-        // Charger les officiels
-        const officielsResponse = await fetch(`${API_BASE_URL}/match/${rencId}/officiels`);
-        const officielsData = officielsResponse.ok ? await officielsResponse.json() : {};
+        // Charger toutes les données en parallèle
+        const [officielsRes, buteursRes, cartonsRes, feuilleRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/match/${rencId}/officiels`),
+            fetch(`${API_BASE_URL}/match/${rencId}/buteurs`),
+            fetch(`${API_BASE_URL}/match/${rencId}/cartons`),
+            fetch(`${API_BASE_URL}/match/${rencId}/feuille-de-match`)
+        ]);
+
+        const officielsData = officielsRes.ok ? await officielsRes.json() : { data: [] };
+        const buteursData = buteursRes.ok ? await buteursRes.json() : { data: { team1: [], team2: [] } };
+        const cartonsData = cartonsRes.ok ? await cartonsRes.json() : { data: { team1: {}, team2: {} } };
+        const feuilleData = feuilleRes.ok ? await feuilleRes.json() : { html: '' };
+
         const officiels = officielsData.data || [];
-
-        // Charger la feuille de match
-        const feuilleResponse = await fetch(`${API_BASE_URL}/match/${rencId}/feuille-de-match`);
-        const feuilleData = feuilleResponse.ok ? await feuilleResponse.json() : {};
+        const buteurs = buteursData.data || { team1: [], team2: [] };
+        const cartons = cartonsData.data || { team1: {}, team2: {} };
         const feuilleHtml = feuilleData.html || '';
-
-        // Parser les buteurs et cartons
-        const buteurs = parseButeurs(feuilleHtml);
-        const cartons = parseCartons(feuilleHtml);
 
         // Extraire les infos du match depuis la feuille
         const matchInfo = extractMatchInfo(feuilleHtml);
+
+        // Stocker les officiels complets
+        allOfficials = officiels;
 
         // Afficher les infos
         displayMatchInfo(matchInfo);
         displayOfficiels(officiels);
         displayButeurs(buteurs, matchInfo);
         displayCartons(cartons);
+        displayFeuilleDeMatch(feuilleHtml);
 
     } catch (error) {
         console.error('Erreur:', error);
@@ -203,73 +189,254 @@ function displayOfficiels(officiels) {
     }
 
     section.style.display = 'block';
-    container.innerHTML = '';
+    
+    // Séparer les arbitres et délégués
+    const arbitres = officiels.filter(o => o.code_fonction === 'ARB');
+    const delegates = officiels.filter(o => o.code_fonction === 'DLG');
+    const autres = officiels.filter(o => o.code_fonction !== 'ARB' && o.code_fonction !== 'DLG');
 
-    officiels.forEach(officiel => {
-        const nom = officiel.nom || 'Non disponible';
-        const fonction = officiel.fonction || 'Rôle inconnu';
-        const licence = officiel.licence || '';
-
-        container.innerHTML += `
-            <div class="officiel-card">
-                <div class="officiel-fonction">🧑‍⚖️ ${fonction}</div>
-                <div class="officiel-nom">${nom}</div>
-                ${licence ? `<div class="officiel-licence">📋 ${licence}</div>` : ''}
-            </div>
-        `;
+    // Afficher les 2 arbitres et le délégué
+    let html = '';
+    
+    arbitres.slice(0, 2).forEach(officiel => {
+        html += createOfficielCard(officiel);
     });
+    
+    delegates.slice(0, 1).forEach(officiel => {
+        html += createOfficielCard(officiel);
+    });
+
+    // Vérifier s'il y a d'autres officiels
+    const totalAffichesInitialement = arbitres.slice(0, 2).length + delegates.slice(0, 1).length;
+    const totalOfficiels = officiels.length;
+    
+    if (totalOfficiels > totalAffichesInitialement) {
+        html += `<button id="show-all-officials-btn" class="show-more-btn">Voir tous les officiels (${totalOfficiels})</button>`;
+    }
+
+    container.innerHTML = html;
+
+    // Ajouter l'écouteur pour le bouton "Voir tous"
+    const btn = document.getElementById('show-all-officials-btn');
+    if (btn) {
+        btn.addEventListener('click', () => {
+            showAllOfficials(officiels);
+        });
+    }
 }
+
+// Créer une carte pour un officiel
+function createOfficielCard(officiel) {
+    const nom = officiel.nom || 'Non disponible';
+    const fonction = officiel.fonction || 'Rôle inconnu';
+    const licence = officiel.licence || '';
+    
+    return `
+        <div class="officiel-card">
+            <div class="officiel-fonction">🧑‍⚖️ ${fonction}</div>
+            <div class="officiel-nom">${nom}</div>
+            ${licence ? `<div class="officiel-licence">📋 ${licence}</div>` : ''}
+        </div>
+    `;
+}
+
+// Afficher tous les officiels dans une modale
+function showAllOfficials(officiels) {
+    let html = '<div class="officiels-modal">';
+    
+    officiels.forEach(officiel => {
+        html += createOfficielCard(officiel);
+    });
+    
+    html += '</div>';
+    
+    const container = document.getElementById('officiels-content');
+    container.innerHTML = html;
+    
+    // Ajouter un bouton pour revenir
+    const btn = document.createElement('button');
+    btn.className = 'show-more-btn';
+    btn.textContent = 'Réduire';
+    btn.addEventListener('click', () => {
+        displayOfficiels(allOfficials);
+    });
+    container.appendChild(btn);
+}
+
+// Stocker les buteurs complets pour filtrage par club
+let allButeurs = { team1: [], team2: [] };
+let currentButeursFilter = 'all';
 
 // Fonction pour afficher les buteurs
 function displayButeurs(buteurs, matchInfo) {
     const section = document.getElementById('buteurs-section');
     const container = document.getElementById('buteurs-content');
 
-    if (!buteurs || buteurs.length === 0) {
+    if (!buteurs || (buteurs.team1.length === 0 && buteurs.team2.length === 0)) {
         section.style.display = 'none';
         return;
     }
 
     section.style.display = 'block';
-    container.innerHTML = '';
+    allButeurs = buteurs;
 
-    buteurs.forEach(but => {
-        const equipe = but.equipe === 'domicile' ? matchInfo.equipe1 : matchInfo.equipe2;
-        container.innerHTML += `
-            <div class="but-item">
-                <div class="but-joueur">👕 N°${but.numero}</div>
-                <div class="but-temps">⚽ ${but.buts} but${but.buts > 1 ? 's' : ''}</div>
-                <div class="but-temps">📍 ${equipe}</div>
+    // Vérifier si on est sur mobile
+    const isMobile = window.innerWidth < 768;
+
+    let html = '';
+
+    // Sur mobile, ajouter des boutons de filtre par club
+    if (isMobile) {
+        html += `
+            <div class="team-filter-buttons">
+                <button class="filter-btn active" data-filter="all">Tous</button>
+                <button class="filter-btn" data-filter="team1">${matchInfo.equipe1}</button>
+                <button class="filter-btn" data-filter="team2">${matchInfo.equipe2}</button>
             </div>
         `;
-    });
+    }
+
+    // Afficher les buteurs
+    if (currentButeursFilter === 'all' || currentButeursFilter === 'team1') {
+        if (buteurs.team1 && buteurs.team1.length > 0) {
+            html += `<div class="team-section"><h3>${matchInfo.equipe1}</h3>`;
+            buteurs.team1.forEach(but => {
+                html += `
+                    <div class="but-item">
+                        <div class="but-joueur">👕 N°${but.numero_maillot}</div>
+                        <div class="but-temps">⚽ ${but.buts} but${but.buts > 1 ? 's' : ''}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        }
+    }
+
+    if (currentButeursFilter === 'all' || currentButeursFilter === 'team2') {
+        if (buteurs.team2 && buteurs.team2.length > 0) {
+            html += `<div class="team-section"><h3>${matchInfo.equipe2}</h3>`;
+            buteurs.team2.forEach(but => {
+                html += `
+                    <div class="but-item">
+                        <div class="but-joueur">� N°${but.numero_maillot}</div>
+                        <div class="but-temps">⚽ ${but.buts} but${but.buts > 1 ? 's' : ''}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        }
+    }
+
+    if (!html.includes('but-item')) {
+        html = '<p class="loading">Aucun but enregistré</p>';
+    }
+
+    container.innerHTML = html;
+
+    // Ajouter les écouteurs pour les boutons de filtre
+    if (isMobile) {
+        const filterBtns = container.querySelectorAll('.filter-btn');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentButeursFilter = btn.dataset.filter;
+                displayButeurs(allButeurs, matchInfo);
+            });
+        });
+    }
 }
+
+// Stocker les cartons complets pour filtrage par club
+let allCartons = { team1: {}, team2: {} };
+let currentCartonsFilter = 'all';
 
 // Fonction pour afficher les cartons
 function displayCartons(cartons) {
     const section = document.getElementById('cartons-section');
     const container = document.getElementById('cartons-content');
 
-    if (!cartons || cartons.length === 0) {
+    if (!cartons || (Object.keys(cartons.team1 || {}).every(k => !cartons.team1[k] || cartons.team1[k].length === 0) &&
+        Object.keys(cartons.team2 || {}).every(k => !cartons.team2[k] || cartons.team2[k].length === 0))) {
         section.style.display = 'none';
         return;
     }
 
     section.style.display = 'block';
-    container.innerHTML = '';
+    allCartons = cartons;
 
-    cartons.forEach(carton => {
-        const typeClass = carton.type === 'red' ? 'red' : 'yellow';
-        const typeText = carton.type === 'red' ? 'Carton rouge' : 'Carton jaune';
-        const icon = carton.type === 'red' ? '🔴' : '🟨';
+    // Vérifier s'il y a des cartons
+    const hasCartons = 
+        (cartons.team1 && (cartons.team1.jaune?.length > 0 || cartons.team1.rouge?.length > 0 || cartons.team1.vert?.length > 0)) ||
+        (cartons.team2 && (cartons.team2.jaune?.length > 0 || cartons.team2.rouge?.length > 0 || cartons.team2.vert?.length > 0));
 
-        container.innerHTML += `
-            <div class="carton-item ${carton.type}-card">
-                <span class="carton-type ${typeClass}">${icon} ${typeText}</span>
-                <div class="but-joueur">${carton.joueur}</div>
-            </div>
-        `;
-    });
+    if (!hasCartons) {
+        section.style.display = 'none';
+        return;
+    }
+
+    let html = '';
+
+    // Afficher les cartons avec couleurs
+    const types = ['vert', 'jaune', 'rouge'];
+    const typeIcons = { vert: '🟢', jaune: '🟨', rouge: '🔴' };
+    const typeTexts = { vert: 'Carton vert', jaune: 'Carton jaune', rouge: 'Carton rouge' };
+    const typeClasses = { vert: 'green', jaune: 'yellow', rouge: 'red' };
+
+    // Team 1
+    if (cartons.team1) {
+        html += '<div class="team-section"><h3>Équipe 1</h3>';
+        types.forEach(type => {
+            if (cartons.team1[type] && cartons.team1[type].length > 0) {
+                cartons.team1[type].forEach(carton => {
+                    html += `
+                        <div class="carton-item carton-${typeClasses[type]}">
+                            <span class="carton-type carton-type-${typeClasses[type]}">${typeIcons[type]} ${typeTexts[type]}</span>
+                            <div class="carton-joueur">${carton.nom}</div>
+                        </div>
+                    `;
+                });
+            }
+        });
+        html += '</div>';
+    }
+
+    // Team 2
+    if (cartons.team2) {
+        html += '<div class="team-section"><h3>Équipe 2</h3>';
+        types.forEach(type => {
+            if (cartons.team2[type] && cartons.team2[type].length > 0) {
+                cartons.team2[type].forEach(carton => {
+                    html += `
+                        <div class="carton-item carton-${typeClasses[type]}">
+                            <span class="carton-type carton-type-${typeClasses[type]}">${typeIcons[type]} ${typeTexts[type]}</span>
+                            <div class="carton-joueur">${carton.nom}</div>
+                        </div>
+                    `;
+                });
+            }
+        });
+        html += '</div>';
+    }
+
+    container.innerHTML = html || '<p class="loading">Aucun carton enregistré</p>';
+}
+
+// Fonction pour afficher la feuille de match complète
+function displayFeuilleDeMatch(feuilleHtml) {
+    const section = document.getElementById('feuille-section');
+    if (!section) return;
+
+    if (!feuilleHtml) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = 'block';
+    const container = document.getElementById('feuille-content');
+    if (container) {
+        container.innerHTML = feuilleHtml;
+    }
 }
 
 // Charger les données au chargement de la page

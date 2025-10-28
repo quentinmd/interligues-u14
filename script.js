@@ -94,6 +94,7 @@ function createMatchCard(match) {
 
     const card = document.createElement('div');
     card.className = 'match-card';
+    card.style.cursor = 'pointer';
     card.innerHTML = `
         <div class="match-header">
             <span class="match-date">${formatDate(date)}</span>
@@ -114,6 +115,14 @@ function createMatchCard(match) {
 
         <div class="match-status ${statusClass}">${statusText}</div>
     `;
+
+    // Stocker le rencId et attacher un écouteur de clic
+    if (match.rencId) {
+        card.dataset.rencId = match.rencId;
+        card.addEventListener('click', () => {
+            window.location.href = `match.html?rencId=${match.rencId}`;
+        });
+    }
 
     return card;
 }

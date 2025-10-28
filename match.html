@@ -168,52 +168,155 @@
             margin-bottom: 5px;
         }
 
-        .carton-type.yellow {
-            background: #fbc02d;
-            color: #333;
+        .carton-type-yellow {
+            background: #fbc02d !important;
+            color: #333 !important;
         }
 
-        .carton-type.red {
-            background: #d32f2f;
+        .carton-type-red {
+            background: #d32f2f !important;
+            color: white !important;
+        }
+
+        .carton-type-green {
+            background: #4caf50 !important;
+            color: white !important;
+        }
+
+        .carton-vert {
+            border-left-color: #4caf50;
+        }
+
+        .carton-jaune {
+            border-left-color: #fbc02d;
+        }
+
+        .carton-rouge {
+            border-left-color: #d32f2f;
+        }
+
+        .team-section {
+            margin-bottom: 20px;
+        }
+
+        .team-section h3 {
+            color: #667eea;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .team-filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
             color: white;
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px 20px;
-            color: #666;
+        .show-more-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: all 0.2s;
+            width: 100%;
         }
 
-        .error {
-            background: #ffebee;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
+        .show-more-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .officiels-modal {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .carton-joueur {
+            font-weight: 600;
+            color: #333;
+            margin-top: 8px;
+        }
+
+        #feuille-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #feuille-section h2 {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        #feuille-content {
+            overflow-x: auto;
+            font-size: 0.9em;
+        }
+
+        #feuille-content table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #feuille-content table th,
+        #feuille-content table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        #feuille-content table th {
+            background: #667eea;
+            color: white;
         }
 
         @media (max-width: 768px) {
-            .match-page-header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
+            .team-filter-buttons {
+                gap: 8px;
             }
 
-            .match-page-header h1 {
-                font-size: 1.4em;
+            .filter-btn {
+                padding: 6px 12px;
+                font-size: 0.9em;
             }
 
-            .match-info {
-                grid-template-columns: 1fr;
+            #feuille-content {
+                font-size: 0.8em;
             }
 
-            .officiels-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .buteurs-list,
-            .cartons-list {
-                grid-template-columns: 1fr;
+            #feuille-content table th,
+            #feuille-content table td {
+                padding: 4px;
             }
         }
     </style>
@@ -247,6 +350,13 @@
             <h2>🟨 Cartons</h2>
             <div id="cartons-content" class="cartons-list">
                 <p class="loading">Aucun carton enregistré</p>
+            </div>
+        </div>
+
+        <div id="feuille-section" class="section" style="display: none;">
+            <h2>📋 Feuille de match complète</h2>
+            <div id="feuille-content">
+                <div class="loading">Chargement de la feuille de match...</div>
             </div>
         </div>
     </div>
