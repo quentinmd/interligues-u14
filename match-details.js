@@ -426,6 +426,7 @@ function displayFeuilleDeMatchMobile(feuilleHtml) {
     const mainTable = doc.querySelector('table.orbe');
     
     if (!mainTable) {
+        console.log('Table.orbe non trouvée');
         return;
     }
 
@@ -434,37 +435,44 @@ function displayFeuilleDeMatchMobile(feuilleHtml) {
     let team1Data = [];
     let team2Data = [];
 
-    rows.forEach(row => {
+    rows.forEach((row, rowIndex) => {
         const cells = row.querySelectorAll('td');
+        
+        if (cells.length < 8) {
+            return; // Passer les lignes incomplètes
+        }
+        
         // La structure est: [licencié1, maillot1, nom1, carton1, licencié2, maillot2, nom2, carton2]
         
-        // Extraire équipe 1 (colonnes 0-3)
-        if (cells.length >= 3) {
-            const numero1 = cells[1]?.textContent?.trim() || '';
-            const nom1 = cells[2]?.textContent?.trim() || '';
-            
-            // Vérifier que ce n'est pas un entraîneur ou chef d'équipe
-            if (numero1 && nom1 && numero1 !== 'Entraîneur' && numero1 !== 'Chef d\'équipe' && numero1 !== 'Gardien') {
-                team1Data.push({ numero: numero1, nom: nom1 });
-            } else if (numero1 === 'Gardien' && cells[2]?.textContent?.trim()) {
-                // Ajouter le gardien avec le libellé Gardien
+        // Extraire équipe 1 (colonnes 1-2)
+        const numero1 = cells[1]?.textContent?.trim() || '';
+        const nom1 = cells[2]?.textContent?.trim() || '';
+        
+        // Extraire équipe 2 (colonnes 5-6)
+        const numero2 = cells[5]?.textContent?.trim() || '';
+        const nom2 = cells[6]?.textContent?.trim() || '';
+        
+        // Ajouter équipe 1 si valide
+        if (numero1 && nom1) {
+            if (numero1 === 'Gardien') {
                 team1Data.push({ numero: 'G', nom: nom1 });
+            } else if (numero1 !== 'Entraîneur' && numero1 !== 'Chef d\'équipe' && numero1 !== 'N° Maillot') {
+                team1Data.push({ numero: numero1, nom: nom1 });
             }
         }
         
-        // Extraire équipe 2 (colonnes 4-7)
-        if (cells.length >= 7) {
-            const numero2 = cells[5]?.textContent?.trim() || '';
-            const nom2 = cells[6]?.textContent?.trim() || '';
-            
-            if (numero2 && nom2 && numero2 !== 'Entraîneur' && numero2 !== 'Chef d\'équipe' && numero2 !== 'Gardien') {
-                team2Data.push({ numero: numero2, nom: nom2 });
-            } else if (numero2 === 'Gardien' && cells[6]?.textContent?.trim()) {
-                // Ajouter le gardien avec le libellé Gardien
+        // Ajouter équipe 2 si valide
+        if (numero2 && nom2) {
+            if (numero2 === 'Gardien') {
                 team2Data.push({ numero: 'G', nom: nom2 });
+            } else if (numero2 !== 'Entraîneur' && numero2 !== 'Chef d\'équipe' && numero2 !== 'N° Maillot') {
+                team2Data.push({ numero: numero2, nom: nom2 });
             }
         }
     });
+
+    console.log('Team1:', team1Data.length, 'joueurs');
+    console.log('Team2:', team2Data.length, 'joueurs');
 
     // Créer l'affichage mobile
     let mobileHtml = '<div class="team-toggle-btn" data-team="all">Toutes les équipes</div>';
