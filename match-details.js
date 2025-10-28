@@ -122,10 +122,6 @@ function displayMatchInfo(info) {
     document.getElementById('score1').textContent = info.score1 || '-';
     document.getElementById('score2').textContent = info.score2 || '-';
     
-    // Afficher les noms dans le score
-    document.getElementById('score-team1-name').textContent = info.equipe1 || 'Équipe 1';
-    document.getElementById('score-team2-name').textContent = info.equipe2 || 'Équipe 2';
-    
     // Avatar avec première lettre
     const avatar1 = document.getElementById('avatar1');
     const avatar2 = document.getElementById('avatar2');
