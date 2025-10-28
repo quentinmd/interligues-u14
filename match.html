@@ -422,6 +422,7 @@
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 30px;
+                grid-auto-flow: row;
             }
 
             #feuille-mobile-content .team-toggle-btn {
@@ -430,13 +431,26 @@
             }
 
             #feuille-mobile-content .feuille-team-container {
-                display: block;
+                display: block !important;
+                width: 100%;
+            }
+
+            #feuille-mobile-content .feuille-team-container[style*="display: none"] {
+                display: none !important;
             }
 
             #feuille-mobile-content .feuille-team-container h3 {
                 margin-top: 0;
                 padding-bottom: 10px;
                 border-bottom: 2px solid #667eea;
+            }
+
+            #feuille-mobile-content .player-card-mobile {
+                background: #f9f9f9;
+                padding: 12px;
+                border-radius: 8px;
+                border-left: 4px solid #667eea;
+                margin-bottom: 10px;
             }
         }
 
