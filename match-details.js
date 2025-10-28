@@ -146,6 +146,25 @@ async function loadMatchDetails() {
 }
 
 // Fonction pour afficher les infos du match
+// Fonction pour vérifier si un match est en cours
+function isMatchOngoing(dateStr, heureStr) {
+    if (!dateStr || !heureStr) return false;
+    
+    // Parser la date et l'heure
+    const [day, month, year] = dateStr.split('/');
+    const [hours, minutes] = heureStr.split(':');
+    
+    const matchStart = new Date(year, month - 1, day, hours, minutes, 0);
+    const now = new Date();
+    
+    // Durée du match: 2*20 min + 5 min de mi-temps = 45 minutes
+    const matchDuration = 45 * 60 * 1000;
+    const matchEnd = new Date(matchStart.getTime() + matchDuration);
+    
+    // Le match est en cours si maintenant est entre le début et la fin
+    return now >= matchStart && now <= matchEnd;
+}
+
 function displayMatchInfo(info) {
     // Afficher dans le header hero
     document.getElementById('team1-name').textContent = info.equipe1 || 'Équipe 1';
@@ -162,6 +181,14 @@ function displayMatchInfo(info) {
     // Date, heure et terrain
     document.getElementById('match-date').textContent = info.date ? `${info.date} - ${info.heure}` : 'Date non disponible';
     document.getElementById('match-terrain').textContent = info.terrain || 'Terrain non disponible';
+    
+    // Vérifier si le match est en cours
+    const hero = document.querySelector('.match-hero');
+    if (isMatchOngoing(info.date, info.heure)) {
+        hero.classList.add('match-ongoing');
+    } else {
+        hero.classList.remove('match-ongoing');
+    }
     
     // Afficher les infos détaillées (vide pour l'instant)
     const container = document.getElementById('match-info');
