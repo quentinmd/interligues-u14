@@ -182,14 +182,6 @@ function displayMatchInfo(info) {
     document.getElementById('match-date').textContent = info.date ? `${info.date} - ${info.heure}` : 'Date non disponible';
     document.getElementById('match-terrain').textContent = info.terrain || 'Terrain non disponible';
     
-    // Vérifier si le match est en cours
-    const hero = document.querySelector('.match-hero');
-    if (isMatchOngoing(info.date, info.heure)) {
-        hero.classList.add('match-ongoing');
-    } else {
-        hero.classList.remove('match-ongoing');
-    }
-    
     // Afficher les infos détaillées (vide pour l'instant)
     const container = document.getElementById('match-info');
     container.innerHTML = '';
