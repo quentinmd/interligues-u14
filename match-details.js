@@ -69,27 +69,33 @@ async function loadMatchDetails() {
     }
 
     try {
-        // Charger toutes les données en parallèle
-        const [officielsRes, buteursRes, cartonsRes, feuilleRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/match/${rencId}/officiels`),
-            fetch(`${API_BASE_URL}/match/${rencId}/buteurs`),
-            fetch(`${API_BASE_URL}/match/${rencId}/cartons`),
-            fetch(`${API_BASE_URL}/match/${rencId}/feuille-de-match`)
-        ]);
-
-        const officielsData = officielsRes.ok ? await officielsRes.json() : { data: [] };
-        const buteursData = buteursRes.ok ? await buteursRes.json() : { data: { team1: {}, team2: {} } };
-        const cartonsData = cartonsRes.ok ? await cartonsRes.json() : { data: { team1: {}, team2: {} } };
+        // Charger d'abord la feuille de match (prioritaire)
+        const feuilleRes = await fetch(`${API_BASE_URL}/match/${rencId}/feuille-de-match`);
         const feuilleData = feuilleRes.ok ? await feuilleRes.json() : { html: '' };
-
-        const officiels = officielsData.data || [];
-        const buteurs = buteursData.data || { team1: {}, team2: {} };
-        const cartons = cartonsData.data || { team1: {}, team2: {} };
         const feuilleHtml = feuilleData.html || '';
 
         // Extraire les infos du match depuis la feuille
         const matchInfo = extractMatchInfo(feuilleHtml);
         
+        // Afficher immédiatement l'header (score, équipes, date, terrain)
+        displayMatchInfo(matchInfo);
+        displayFeuilleDeMatch(feuilleHtml);
+
+        // Charger les données secondaires en parallèle en arrière-plan
+        const [officielsRes, buteursRes, cartonsRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/match/${rencId}/officiels`),
+            fetch(`${API_BASE_URL}/match/${rencId}/buteurs`),
+            fetch(`${API_BASE_URL}/match/${rencId}/cartons`)
+        ]);
+
+        const officielsData = officielsRes.ok ? await officielsRes.json() : { data: [] };
+        const buteursData = buteursRes.ok ? await buteursRes.json() : { data: { team1: {}, team2: {} } };
+        const cartonsData = cartonsRes.ok ? await cartonsRes.json() : { data: { team1: {}, team2: {} } };
+
+        const officiels = officielsData.data || [];
+        const buteurs = buteursData.data || { team1: {}, team2: {} };
+        const cartons = cartonsData.data || { team1: {}, team2: {} };
+
         // Utiliser les noms d'équipes des buteurs si disponibles (plus fiables)
         if (buteurs.team1 && buteurs.team1.nom_equipe) {
             matchInfo.equipe1 = buteurs.team1.nom_equipe;
@@ -101,12 +107,10 @@ async function loadMatchDetails() {
         // Stocker les officiels complets
         allOfficials = officiels;
 
-        // Afficher les infos
-        displayMatchInfo(matchInfo);
+        // Afficher les détails secondaires
         displayOfficiels(officiels);
         displayButeurs(buteurs, matchInfo);
         displayCartons(cartons);
-        displayFeuilleDeMatch(feuilleHtml);
 
     } catch (error) {
         console.error('Erreur:', error);
