@@ -8,6 +8,10 @@ let allOfficials = [];
 let allButeurs = {};
 let currentButeursFilter = 'all';
 
+// Stocker les noms d'équipes pour la feuille de match
+let team1Name = 'Équipe 1';
+let team2Name = 'Équipe 2';
+
 // Récupérer l'ID de rencontre depuis l'URL
 function getRencIdFromURL() {
     const params = new URLSearchParams(window.location.search);
@@ -99,12 +103,14 @@ async function loadMatchDetails() {
         // Utiliser les noms d'équipes des buteurs si disponibles (plus fiables)
         if (buteurs.team1 && buteurs.team1.nom_equipe) {
             matchInfo.equipe1 = buteurs.team1.nom_equipe;
+            team1Name = matchInfo.equipe1;
             // Mettre à jour immédiatement l'affichage
             document.getElementById('team1-name').textContent = matchInfo.equipe1;
             document.getElementById('avatar1').textContent = matchInfo.equipe1.charAt(0).toUpperCase();
         }
         if (buteurs.team2 && buteurs.team2.nom_equipe) {
             matchInfo.equipe2 = buteurs.team2.nom_equipe;
+            team2Name = matchInfo.equipe2;
             // Mettre à jour immédiatement l'affichage
             document.getElementById('team2-name').textContent = matchInfo.equipe2;
             document.getElementById('avatar2').textContent = matchInfo.equipe2.charAt(0).toUpperCase();
@@ -478,21 +484,22 @@ function displayFeuilleDeMatchMobile(feuilleHtml) {
     let mobileHtml = '<div class="team-toggle-btn" data-team="all">Toutes les équipes</div>';
 
     if (team1Data.length > 0) {
-        mobileHtml += '<div class="team-toggle-btn" data-team="team1">Équipe 1</div>';
+        mobileHtml += `<div class="team-toggle-btn" data-team="team1">${team1Name}</div>`;
     }
     if (team2Data.length > 0) {
-        mobileHtml += '<div class="team-toggle-btn" data-team="team2">Équipe 2</div>';
+        mobileHtml += `<div class="team-toggle-btn" data-team="team2">${team2Name}</div>`;
     }
 
     // Afficher équipe 1
     if (team1Data.length > 0) {
         mobileHtml += '<div class="feuille-team-container" data-team-content="all">';
-        mobileHtml += '<div class="feuille-team-container" data-team-content="team1"><h3>Équipe 1</h3>';
+        mobileHtml += `<div class="feuille-team-container" data-team-content="team1"><h3>${team1Name}</h3>`;
         team1Data.forEach(player => {
+            const displayNumber = player.numero === 'G' ? 'Gardien' : `N° ${player.numero}`;
             mobileHtml += `
                 <div class="player-card-mobile">
                     <div class="player-info-mobile">
-                        <span class="player-number-mobile">N° ${player.numero}</span>
+                        <span class="player-number-mobile">${displayNumber}</span>
                         <span class="player-name-mobile">${player.nom}</span>
                     </div>
                 </div>
@@ -504,12 +511,13 @@ function displayFeuilleDeMatchMobile(feuilleHtml) {
     // Afficher équipe 2
     if (team2Data.length > 0) {
         mobileHtml += '<div class="feuille-team-container" data-team-content="all">';
-        mobileHtml += '<div class="feuille-team-container" data-team-content="team2"><h3>Équipe 2</h3>';
+        mobileHtml += `<div class="feuille-team-container" data-team-content="team2"><h3>${team2Name}</h3>`;
         team2Data.forEach(player => {
+            const displayNumber = player.numero === 'G' ? 'Gardien' : `N° ${player.numero}`;
             mobileHtml += `
                 <div class="player-card-mobile">
                     <div class="player-info-mobile">
-                        <span class="player-number-mobile">N° ${player.numero}</span>
+                        <span class="player-number-mobile">${displayNumber}</span>
                         <span class="player-name-mobile">${player.nom}</span>
                     </div>
                 </div>
