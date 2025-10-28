@@ -412,6 +412,65 @@
             color: white;
         }
 
+        .team-toggle-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .team-toggle-btn:hover {
+            background: #764ba2;
+        }
+
+        .team-toggle-btn.active {
+            background: #764ba2;
+        }
+
+        .feuille-team-container {
+            margin-bottom: 20px;
+        }
+
+        .feuille-team-container h3 {
+            color: #667eea;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-size: 1.05em;
+        }
+
+        .player-card-mobile {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-info-mobile {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-number-mobile {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .player-name-mobile {
+            font-weight: 600;
+            color: #333;
+            margin-top: 3px;
+        }
+
         @media (max-width: 768px) {
             .match-hero {
                 padding: 30px 15px;
@@ -493,6 +552,14 @@
                 padding: 8px 15px;
                 font-size: 0.85em;
             }
+
+            #feuille-content table {
+                display: none;
+            }
+
+            .feuille-mobile-view {
+                display: block;
+            }
         }
 
         @media (max-width: 480px) {
@@ -560,6 +627,42 @@
                 padding: 6px 12px;
                 font-size: 0.8em;
             }
+
+            #feuille-content table {
+                display: none;
+            }
+
+            .feuille-mobile-view {
+                display: block;
+            }
+
+            .team-toggle-btn {
+                padding: 8px 14px;
+                font-size: 0.9em;
+                margin-right: 8px;
+                margin-bottom: 12px;
+                display: inline-block;
+            }
+
+            .player-card-mobile {
+                padding: 10px;
+                margin-bottom: 8px;
+                font-size: 0.95em;
+            }
+
+            .player-number-mobile {
+                font-size: 1em;
+            }
+
+            .player-name-mobile {
+                font-size: 0.95em;
+                margin-top: 2px;
+            }
+
+            .feuille-team-container h3 {
+                font-size: 1em;
+                margin: 12px 0 8px 0;
+            }
         }
     </style>
 </head>
@@ -616,6 +719,9 @@
         <div id="feuille-section" class="section" style="display: none;">
             <h2>📋 Feuille de match complète</h2>
             <div id="feuille-content">
+                <div class="loading">Chargement de la feuille de match...</div>
+            </div>
+            <div id="feuille-mobile-content" class="feuille-mobile-view" style="display: none;">
                 <div class="loading">Chargement de la feuille de match...</div>
             </div>
         </div>

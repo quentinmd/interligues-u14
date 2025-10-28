@@ -409,6 +409,133 @@ function displayFeuilleDeMatch(feuilleHtml) {
     if (container) {
         container.innerHTML = feuilleHtml;
     }
+
+    // Sur mobile, créer une vue simplifiée
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+        displayFeuilleDeMatchMobile(feuilleHtml);
+    }
+}
+
+// Fonction pour afficher la feuille en version mobile (simplifiée)
+function displayFeuilleDeMatchMobile(feuilleHtml) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(feuilleHtml, 'text/html');
+    
+    // Trouver toutes les tables
+    const tables = doc.querySelectorAll('table');
+    
+    if (tables.length === 0) {
+        return;
+    }
+
+    // On cherche les deux tables (équipe 1 et équipe 2)
+    let team1Data = [];
+    let team2Data = [];
+
+    tables.forEach((table, index) => {
+        const rows = table.querySelectorAll('tbody tr');
+        const teamData = [];
+
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 2) {
+                const numero = cells[1]?.textContent?.trim() || '';
+                const nom = cells[2]?.textContent?.trim() || '';
+
+                if (numero || nom) {
+                    teamData.push({ numero, nom });
+                }
+            }
+        });
+
+        if (index === 0) {
+            team1Data = teamData;
+        } else if (index === 1) {
+            team2Data = teamData;
+        }
+    });
+
+    // Créer l'affichage mobile
+    let mobileHtml = '<div class="team-toggle-btn" data-team="all">Toutes les équipes</div>';
+
+    if (team1Data.length > 0) {
+        mobileHtml += '<div class="team-toggle-btn" data-team="team1">Équipe 1</div>';
+    }
+    if (team2Data.length > 0) {
+        mobileHtml += '<div class="team-toggle-btn" data-team="team2">Équipe 2</div>';
+    }
+
+    // Afficher équipe 1
+    if (team1Data.length > 0) {
+        mobileHtml += '<div class="feuille-team-container" data-team-content="all">';
+        mobileHtml += '<div class="feuille-team-container" data-team-content="team1"><h3>Équipe 1</h3>';
+        team1Data.forEach(player => {
+            mobileHtml += `
+                <div class="player-card-mobile">
+                    <div class="player-info-mobile">
+                        <span class="player-number-mobile">N° ${player.numero}</span>
+                        <span class="player-name-mobile">${player.nom}</span>
+                    </div>
+                </div>
+            `;
+        });
+        mobileHtml += '</div></div>';
+    }
+
+    // Afficher équipe 2
+    if (team2Data.length > 0) {
+        mobileHtml += '<div class="feuille-team-container" data-team-content="all">';
+        mobileHtml += '<div class="feuille-team-container" data-team-content="team2"><h3>Équipe 2</h3>';
+        team2Data.forEach(player => {
+            mobileHtml += `
+                <div class="player-card-mobile">
+                    <div class="player-info-mobile">
+                        <span class="player-number-mobile">N° ${player.numero}</span>
+                        <span class="player-name-mobile">${player.nom}</span>
+                    </div>
+                </div>
+            `;
+        });
+        mobileHtml += '</div></div>';
+    }
+
+    const mobileContainer = document.getElementById('feuille-mobile-content');
+    if (mobileContainer) {
+        mobileContainer.innerHTML = mobileHtml;
+        mobileContainer.style.display = 'block';
+
+        // Ajouter les écouteurs pour les boutons de filtre
+        const toggleBtns = mobileContainer.querySelectorAll('.team-toggle-btn');
+        const teamContainers = mobileContainer.querySelectorAll('.feuille-team-container[data-team-content]');
+
+        toggleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Retirer la classe active de tous les boutons
+                toggleBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const selectedTeam = btn.dataset.team;
+
+                // Afficher/masquer les conteneurs selon la sélection
+                teamContainers.forEach(container => {
+                    const containerTeam = container.dataset.teamContent;
+                    if (selectedTeam === 'all') {
+                        container.style.display = 'block';
+                    } else if (containerTeam === selectedTeam) {
+                        container.style.display = 'block';
+                    } else if (containerTeam === 'all') {
+                        container.style.display = 'block';
+                    } else {
+                        container.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Activer le bouton "Toutes les équipes" par défaut
+        toggleBtns[0]?.classList.add('active');
+    }
 }
 
 // Charger les données au chargement de la page
