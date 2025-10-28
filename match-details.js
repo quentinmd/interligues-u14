@@ -544,11 +544,11 @@ function displayFeuilleDeMatchMobile(feuilleHtml) {
                 teamContainers.forEach(container => {
                     const containerTeam = container.dataset.team;
                     if (selectedTeam === 'all') {
-                        container.style.display = 'block';
+                        container.classList.remove('hidden-team');
                     } else if (containerTeam === selectedTeam) {
-                        container.style.display = 'block';
+                        container.classList.remove('hidden-team');
                     } else {
-                        container.style.display = 'none';
+                        container.classList.add('hidden-team');
                     }
                 });
             });

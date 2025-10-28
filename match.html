@@ -417,6 +417,10 @@
             display: block;
         }
 
+        .hidden-team {
+            display: none !important;
+        }
+
         @media (min-width: 768px) {
             #feuille-mobile-content {
                 display: grid;
@@ -435,7 +439,7 @@
                 width: 100%;
             }
 
-            #feuille-mobile-content .feuille-team-container[style*="display: none"] {
+            #feuille-mobile-content .feuille-team-container.hidden-team {
                 display: none !important;
             }
 
