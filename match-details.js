@@ -1,6 +1,13 @@
 // Configuration
 const API_BASE_URL = 'https://api-ffhockey-sur-gazon.fly.dev/api/v1';
 
+// Stocker les officiels complets pour la vue complète
+let allOfficials = [];
+
+// Stocker les buteurs complets pour filtrage par club
+let allButeurs = {};
+let currentButeursFilter = 'all';
+
 // Récupérer l'ID de rencontre depuis l'URL
 function getRencIdFromURL() {
     const params = new URLSearchParams(window.location.search);
@@ -52,9 +59,6 @@ function extractMatchInfo(html) {
     return info;
 }
 
-// Stocker les officiels complets pour la vue complète
-let allOfficials = [];
-
 // Fonction pour charger et afficher les détails du match
 async function loadMatchDetails() {
     const rencId = getRencIdFromURL();
@@ -74,12 +78,12 @@ async function loadMatchDetails() {
         ]);
 
         const officielsData = officielsRes.ok ? await officielsRes.json() : { data: [] };
-        const buteursData = buteursRes.ok ? await buteursRes.json() : { data: { team1: [], team2: [] } };
+        const buteursData = buteursRes.ok ? await buteursRes.json() : { data: { team1: {}, team2: {} } };
         const cartonsData = cartonsRes.ok ? await cartonsRes.json() : { data: { team1: {}, team2: {} } };
         const feuilleData = feuilleRes.ok ? await feuilleRes.json() : { html: '' };
 
         const officiels = officielsData.data || [];
-        const buteurs = buteursData.data || { team1: [], team2: [] };
+        const buteurs = buteursData.data || { team1: {}, team2: {} };
         const cartons = cartonsData.data || { team1: {}, team2: {} };
         const feuilleHtml = feuilleData.html || '';
 
@@ -102,77 +106,32 @@ async function loadMatchDetails() {
     }
 }
 
-// Fonction pour extraire les infos du match
-function extractMatchInfo(html) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const text = doc.body.innerText;
-
-    const info = {
-        date: '',
-        heure: '',
-        terrain: '',
-        equipe1: '',
-        equipe2: '',
-        score1: '',
-        score2: ''
-    };
-
-    // Extraire date
-    const dateMatch = text.match(/Date :\s*(\d{1,2}\/\d{1,2}\/\d{4})/);
-    if (dateMatch) info.date = dateMatch[1];
-
-    // Extraire heure
-    const heureMatch = text.match(/Horaire :\s*(\d{1,2}:\d{2})/);
-    if (heureMatch) info.heure = heureMatch[1];
-
-    // Extraire terrain
-    const terrainMatch = text.match(/Terrain :\s*([^\n]+)/);
-    if (terrainMatch) info.terrain = terrainMatch[1].trim();
-
-    // Extraire équipes et scores
-    const clubMatches = text.match(/CLUB VISITE[^\n]*\n[^\n]*NOM :\s*([^\n]+)|CLUB VISITEUR[^\n]*\n[^\n]*NOM :\s*([^\n]+)/g);
-    
-    const equipe1Match = text.match(/CLUB VISITE[^N]*NOM :\s*([^\n]+)/);
-    const equipe2Match = text.match(/CLUB VISITEUR[^N]*NOM :\s*([^\n]+)/);
-    
-    if (equipe1Match) info.equipe1 = equipe1Match[1].trim();
-    if (equipe2Match) info.equipe2 = equipe2Match[1].trim();
-
-    // Extraire scores
-    const scoreMatches = text.match(/Buts en chiffres :\s*(\d+)/g);
-    if (scoreMatches && scoreMatches.length >= 2) {
-        info.score1 = scoreMatches[0].match(/(\d+)/)[1];
-        info.score2 = scoreMatches[1].match(/(\d+)/)[1];
-    }
-
-    return info;
-}
-
 // Fonction pour afficher les infos du match
 function displayMatchInfo(info) {
+    // Afficher dans le header hero
+    document.getElementById('team1-name').textContent = info.equipe1 || 'Équipe 1';
+    document.getElementById('team2-name').textContent = info.equipe2 || 'Équipe 2';
+    document.getElementById('score1').textContent = info.score1 || '-';
+    document.getElementById('score2').textContent = info.score2 || '-';
+    
+    // Avatar avec première lettre
+    const avatar1 = document.getElementById('avatar1');
+    const avatar2 = document.getElementById('avatar2');
+    avatar1.textContent = (info.equipe1 || 'E').charAt(0).toUpperCase();
+    avatar2.textContent = (info.equipe2 || 'E').charAt(0).toUpperCase();
+    
+    // Date et heure
+    document.getElementById('match-date').textContent = info.date ? `${info.date} - ${info.heure}` : 'Date non disponible';
+    
+    // Afficher les infos détaillées
     const container = document.getElementById('match-info');
-    const title = document.getElementById('match-title');
-
-    // Mettre à jour le titre
-    title.textContent = `${info.equipe1} ${info.score1} - ${info.score2} ${info.equipe2}`;
-
-    // Remplir les infos
     container.innerHTML = `
-        <div class="info-item">
-            <div class="info-label">📅 Date</div>
-            <div class="info-value">${info.date || 'Non disponible'}</div>
-        </div>
-        <div class="info-item">
-            <div class="info-label">⏰ Heure</div>
-            <div class="info-value">${info.heure || 'Non disponible'}</div>
-        </div>
         <div class="info-item">
             <div class="info-label">📍 Terrain</div>
             <div class="info-value">${info.terrain || 'Non disponible'}</div>
         </div>
         <div class="info-item">
-            <div class="info-label">⚽ Score</div>
+            <div class="info-label">⚽ Score final</div>
             <div class="info-value">${info.score1} - ${info.score2}</div>
         </div>
     `;
@@ -193,7 +152,6 @@ function displayOfficiels(officiels) {
     // Séparer les arbitres et délégués
     const arbitres = officiels.filter(o => o.code_fonction === 'ARB');
     const delegates = officiels.filter(o => o.code_fonction === 'DLG');
-    const autres = officiels.filter(o => o.code_fonction !== 'ARB' && o.code_fonction !== 'DLG');
 
     // Afficher les 2 arbitres et le délégué
     let html = '';
@@ -263,16 +221,12 @@ function showAllOfficials(officiels) {
     container.appendChild(btn);
 }
 
-// Stocker les buteurs complets pour filtrage par club
-let allButeurs = { team1: [], team2: [] };
-let currentButeursFilter = 'all';
-
 // Fonction pour afficher les buteurs
 function displayButeurs(buteurs, matchInfo) {
     const section = document.getElementById('buteurs-section');
     const container = document.getElementById('buteurs-content');
 
-    if (!buteurs || (buteurs.team1.length === 0 && buteurs.team2.length === 0)) {
+    if (!buteurs || !buteurs.team1 || !buteurs.team2 || ((!buteurs.team1.buteurs || buteurs.team1.buteurs.length === 0) && (!buteurs.team2.buteurs || buteurs.team2.buteurs.length === 0))) {
         section.style.display = 'none';
         return;
     }
@@ -286,24 +240,28 @@ function displayButeurs(buteurs, matchInfo) {
     let html = '';
 
     // Sur mobile, ajouter des boutons de filtre par club
-    if (isMobile) {
+    if (isMobile && ((buteurs.team1.buteurs && buteurs.team1.buteurs.length > 0) || (buteurs.team2.buteurs && buteurs.team2.buteurs.length > 0))) {
         html += `
             <div class="team-filter-buttons">
                 <button class="filter-btn active" data-filter="all">Tous</button>
-                <button class="filter-btn" data-filter="team1">${matchInfo.equipe1}</button>
-                <button class="filter-btn" data-filter="team2">${matchInfo.equipe2}</button>
-            </div>
         `;
+        if (buteurs.team1.buteurs && buteurs.team1.buteurs.length > 0) {
+            html += `<button class="filter-btn" data-filter="team1">${buteurs.team1.nom_equipe}</button>`;
+        }
+        if (buteurs.team2.buteurs && buteurs.team2.buteurs.length > 0) {
+            html += `<button class="filter-btn" data-filter="team2">${buteurs.team2.nom_equipe}</button>`;
+        }
+        html += '</div>';
     }
 
     // Afficher les buteurs
     if (currentButeursFilter === 'all' || currentButeursFilter === 'team1') {
-        if (buteurs.team1 && buteurs.team1.length > 0) {
-            html += `<div class="team-section"><h3>${matchInfo.equipe1}</h3>`;
-            buteurs.team1.forEach(but => {
+        if (buteurs.team1.buteurs && buteurs.team1.buteurs.length > 0) {
+            html += `<div class="team-section"><h3>${buteurs.team1.nom_equipe}</h3>`;
+            buteurs.team1.buteurs.forEach(but => {
                 html += `
                     <div class="but-item">
-                        <div class="but-joueur">👕 N°${but.numero_maillot}</div>
+                        <div class="but-joueur">👕 N°${but.numero_maillot} - ${but.nom}</div>
                         <div class="but-temps">⚽ ${but.buts} but${but.buts > 1 ? 's' : ''}</div>
                     </div>
                 `;
@@ -313,12 +271,12 @@ function displayButeurs(buteurs, matchInfo) {
     }
 
     if (currentButeursFilter === 'all' || currentButeursFilter === 'team2') {
-        if (buteurs.team2 && buteurs.team2.length > 0) {
-            html += `<div class="team-section"><h3>${matchInfo.equipe2}</h3>`;
-            buteurs.team2.forEach(but => {
+        if (buteurs.team2.buteurs && buteurs.team2.buteurs.length > 0) {
+            html += `<div class="team-section"><h3>${buteurs.team2.nom_equipe}</h3>`;
+            buteurs.team2.buteurs.forEach(but => {
                 html += `
                     <div class="but-item">
-                        <div class="but-joueur">� N°${but.numero_maillot}</div>
+                        <div class="but-joueur">👕 N°${but.numero_maillot} - ${but.nom}</div>
                         <div class="but-temps">⚽ ${but.buts} but${but.buts > 1 ? 's' : ''}</div>
                     </div>
                 `;
@@ -347,25 +305,19 @@ function displayButeurs(buteurs, matchInfo) {
     }
 }
 
-// Stocker les cartons complets pour filtrage par club
+// Stocker les cartons complets
 let allCartons = { team1: {}, team2: {} };
-let currentCartonsFilter = 'all';
 
 // Fonction pour afficher les cartons
 function displayCartons(cartons) {
     const section = document.getElementById('cartons-section');
     const container = document.getElementById('cartons-content');
 
-    if (!cartons || (Object.keys(cartons.team1 || {}).every(k => !cartons.team1[k] || cartons.team1[k].length === 0) &&
-        Object.keys(cartons.team2 || {}).every(k => !cartons.team2[k] || cartons.team2[k].length === 0))) {
+    if (!cartons || !cartons.team1 || !cartons.team2) {
         section.style.display = 'none';
         return;
     }
 
-    section.style.display = 'block';
-    allCartons = cartons;
-
-    // Vérifier s'il y a des cartons
     const hasCartons = 
         (cartons.team1 && (cartons.team1.jaune?.length > 0 || cartons.team1.rouge?.length > 0 || cartons.team1.vert?.length > 0)) ||
         (cartons.team2 && (cartons.team2.jaune?.length > 0 || cartons.team2.rouge?.length > 0 || cartons.team2.vert?.length > 0));
@@ -374,6 +326,9 @@ function displayCartons(cartons) {
         section.style.display = 'none';
         return;
     }
+
+    section.style.display = 'block';
+    allCartons = cartons;
 
     let html = '';
 
@@ -385,38 +340,44 @@ function displayCartons(cartons) {
 
     // Team 1
     if (cartons.team1) {
-        html += '<div class="team-section"><h3>Équipe 1</h3>';
-        types.forEach(type => {
-            if (cartons.team1[type] && cartons.team1[type].length > 0) {
-                cartons.team1[type].forEach(carton => {
-                    html += `
-                        <div class="carton-item carton-${typeClasses[type]}">
-                            <span class="carton-type carton-type-${typeClasses[type]}">${typeIcons[type]} ${typeTexts[type]}</span>
-                            <div class="carton-joueur">${carton.nom}</div>
-                        </div>
-                    `;
-                });
-            }
-        });
-        html += '</div>';
+        const hasTeam1Cartons = types.some(type => cartons.team1[type] && cartons.team1[type].length > 0);
+        if (hasTeam1Cartons) {
+            html += `<div class="team-section"><h3>${cartons.team1.nom_equipe}</h3>`;
+            types.forEach(type => {
+                if (cartons.team1[type] && cartons.team1[type].length > 0) {
+                    cartons.team1[type].forEach(carton => {
+                        html += `
+                            <div class="carton-item carton-${typeClasses[type]}">
+                                <span class="carton-type carton-type-${typeClasses[type]}">${typeIcons[type]} ${typeTexts[type]}</span>
+                                <div class="carton-joueur">${carton.nom}</div>
+                            </div>
+                        `;
+                    });
+                }
+            });
+            html += '</div>';
+        }
     }
 
     // Team 2
     if (cartons.team2) {
-        html += '<div class="team-section"><h3>Équipe 2</h3>';
-        types.forEach(type => {
-            if (cartons.team2[type] && cartons.team2[type].length > 0) {
-                cartons.team2[type].forEach(carton => {
-                    html += `
-                        <div class="carton-item carton-${typeClasses[type]}">
-                            <span class="carton-type carton-type-${typeClasses[type]}">${typeIcons[type]} ${typeTexts[type]}</span>
-                            <div class="carton-joueur">${carton.nom}</div>
-                        </div>
-                    `;
-                });
-            }
-        });
-        html += '</div>';
+        const hasTeam2Cartons = types.some(type => cartons.team2[type] && cartons.team2[type].length > 0);
+        if (hasTeam2Cartons) {
+            html += `<div class="team-section"><h3>${cartons.team2.nom_equipe}</h3>`;
+            types.forEach(type => {
+                if (cartons.team2[type] && cartons.team2[type].length > 0) {
+                    cartons.team2[type].forEach(carton => {
+                        html += `
+                            <div class="carton-item carton-${typeClasses[type]}">
+                                <span class="carton-type carton-type-${typeClasses[type]}">${typeIcons[type]} ${typeTexts[type]}</span>
+                                <div class="carton-joueur">${carton.nom}</div>
+                            </div>
+                        `;
+                    });
+                }
+            });
+            html += '</div>';
+        }
     }
 
     container.innerHTML = html || '<p class="loading">Aucun carton enregistré</p>';
