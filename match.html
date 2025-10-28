@@ -393,7 +393,7 @@
         #feuille-content {
             overflow-x: auto;
             font-size: 0.9em;
-            display: none;
+            display: block;
         }
 
         #feuille-content table {
@@ -413,8 +413,21 @@
             color: white;
         }
 
+        @media (min-width: 1024px) {
+            #feuille-content {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+
+            #feuille-content table {
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+        }
+
         #feuille-mobile-content {
-            display: block;
             display: none;
         }
 
@@ -648,7 +661,7 @@
                 display: none;
             }
 
-            .feuille-mobile-view {
+            #feuille-mobile-content {
                 display: block;
             }
 
