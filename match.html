@@ -393,7 +393,7 @@
         #feuille-content {
             overflow-x: auto;
             font-size: 0.9em;
-            display: block;
+            display: none;
         }
 
         #feuille-content table {
@@ -413,22 +413,31 @@
             color: white;
         }
 
-        @media (min-width: 1024px) {
-            #feuille-content {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
-            }
-
-            #feuille-content table {
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                overflow: hidden;
-            }
+        #feuille-mobile-content {
+            display: block;
         }
 
-        #feuille-mobile-content {
-            display: none;
+        @media (min-width: 768px) {
+            #feuille-mobile-content {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+            }
+
+            #feuille-mobile-content .team-toggle-btn {
+                grid-column: 1 / -1;
+                margin-bottom: 15px;
+            }
+
+            #feuille-mobile-content .feuille-team-container {
+                display: block;
+            }
+
+            #feuille-mobile-content .feuille-team-container h3 {
+                margin-top: 0;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #667eea;
+            }
         }
 
         .team-toggle-btn {
@@ -686,6 +695,10 @@
             .player-name-mobile {
                 font-size: 0.95em;
                 margin-top: 2px;
+            }
+
+            .feuille-team-container {
+                display: block !important;
             }
 
             .feuille-team-container h3 {

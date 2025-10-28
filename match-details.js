@@ -480,7 +480,7 @@ function displayFeuilleDeMatchMobile(feuilleHtml) {
     console.log('Team1:', team1Data.length, 'joueurs');
     console.log('Team2:', team2Data.length, 'joueurs');
 
-    // Créer l'affichage mobile
+    // Créer l'affichage mobile/desktop
     let mobileHtml = '<div class="team-toggle-btn" data-team="all">Toutes les équipes</div>';
 
     if (team1Data.length > 0) {
@@ -492,8 +492,8 @@ function displayFeuilleDeMatchMobile(feuilleHtml) {
 
     // Afficher équipe 1
     if (team1Data.length > 0) {
-        mobileHtml += '<div class="feuille-team-container" data-team-content="all">';
-        mobileHtml += `<div class="feuille-team-container" data-team-content="team1"><h3>${team1Name}</h3>`;
+        mobileHtml += `<div class="feuille-team-container" data-team-content="all" data-team="team1">`;
+        mobileHtml += `<h3>${team1Name}</h3>`;
         team1Data.forEach(player => {
             const displayNumber = player.numero === 'G' ? 'Gardien' : `N° ${player.numero}`;
             mobileHtml += `
@@ -505,13 +505,13 @@ function displayFeuilleDeMatchMobile(feuilleHtml) {
                 </div>
             `;
         });
-        mobileHtml += '</div></div>';
+        mobileHtml += '</div>';
     }
 
     // Afficher équipe 2
     if (team2Data.length > 0) {
-        mobileHtml += '<div class="feuille-team-container" data-team-content="all">';
-        mobileHtml += `<div class="feuille-team-container" data-team-content="team2"><h3>${team2Name}</h3>`;
+        mobileHtml += `<div class="feuille-team-container" data-team-content="all" data-team="team2">`;
+        mobileHtml += `<h3>${team2Name}</h3>`;
         team2Data.forEach(player => {
             const displayNumber = player.numero === 'G' ? 'Gardien' : `N° ${player.numero}`;
             mobileHtml += `
@@ -523,7 +523,7 @@ function displayFeuilleDeMatchMobile(feuilleHtml) {
                 </div>
             `;
         });
-        mobileHtml += '</div></div>';
+        mobileHtml += '</div>';
     }
 
     const mobileContainer = document.getElementById('feuille-mobile-content');
@@ -533,7 +533,7 @@ function displayFeuilleDeMatchMobile(feuilleHtml) {
 
         // Ajouter les écouteurs pour les boutons de filtre
         const toggleBtns = mobileContainer.querySelectorAll('.team-toggle-btn');
-        const teamContainers = mobileContainer.querySelectorAll('.feuille-team-container[data-team-content]');
+        const teamContainers = mobileContainer.querySelectorAll('.feuille-team-container');
 
         toggleBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -545,12 +545,10 @@ function displayFeuilleDeMatchMobile(feuilleHtml) {
 
                 // Afficher/masquer les conteneurs selon la sélection
                 teamContainers.forEach(container => {
-                    const containerTeam = container.dataset.teamContent;
+                    const containerTeam = container.dataset.team;
                     if (selectedTeam === 'all') {
                         container.style.display = 'block';
                     } else if (containerTeam === selectedTeam) {
-                        container.style.display = 'block';
-                    } else if (containerTeam === 'all') {
                         container.style.display = 'block';
                     } else {
                         container.style.display = 'none';
