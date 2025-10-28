@@ -79,7 +79,7 @@ async function loadMatchDetails() {
         
         // Afficher immédiatement l'header (score, équipes, date, terrain)
         displayMatchInfo(matchInfo);
-        displayFeuilleDeMatch(feuilleHtml);
+        // Ne pas afficher la feuille immédiatement
 
         // Charger les données secondaires en parallèle en arrière-plan
         const [officielsRes, buteursRes, cartonsRes] = await Promise.all([
@@ -99,9 +99,15 @@ async function loadMatchDetails() {
         // Utiliser les noms d'équipes des buteurs si disponibles (plus fiables)
         if (buteurs.team1 && buteurs.team1.nom_equipe) {
             matchInfo.equipe1 = buteurs.team1.nom_equipe;
+            // Mettre à jour immédiatement l'affichage
+            document.getElementById('team1-name').textContent = matchInfo.equipe1;
+            document.getElementById('avatar1').textContent = matchInfo.equipe1.charAt(0).toUpperCase();
         }
         if (buteurs.team2 && buteurs.team2.nom_equipe) {
             matchInfo.equipe2 = buteurs.team2.nom_equipe;
+            // Mettre à jour immédiatement l'affichage
+            document.getElementById('team2-name').textContent = matchInfo.equipe2;
+            document.getElementById('avatar2').textContent = matchInfo.equipe2.charAt(0).toUpperCase();
         }
 
         // Stocker les officiels complets
@@ -111,6 +117,7 @@ async function loadMatchDetails() {
         displayOfficiels(officiels);
         displayButeurs(buteurs, matchInfo);
         displayCartons(cartons);
+        displayFeuilleDeMatch(feuilleHtml);
 
     } catch (error) {
         console.error('Erreur:', error);
