@@ -89,6 +89,14 @@ async function loadMatchDetails() {
 
         // Extraire les infos du match depuis la feuille
         const matchInfo = extractMatchInfo(feuilleHtml);
+        
+        // Utiliser les noms d'équipes des buteurs si disponibles (plus fiables)
+        if (buteurs.team1 && buteurs.team1.nom_equipe) {
+            matchInfo.equipe1 = buteurs.team1.nom_equipe;
+        }
+        if (buteurs.team2 && buteurs.team2.nom_equipe) {
+            matchInfo.equipe2 = buteurs.team2.nom_equipe;
+        }
 
         // Stocker les officiels complets
         allOfficials = officiels;
