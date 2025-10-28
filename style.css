@@ -224,11 +224,20 @@ header h1 {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.match-card.ongoing {
+    border: 3px solid #ff4444;
+    box-shadow: 0 0 0 2px #ff4444, 0 4px 15px rgba(255, 68, 68, 0.3);
+}
+
 .match-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
     border-color: #667eea;
     cursor: pointer;
+}
+
+.match-card.ongoing:hover {
+    box-shadow: 0 0 0 2px #ff4444, 0 8px 25px rgba(255, 68, 68, 0.5);
 }
 
 .match-header {

@@ -75,11 +75,29 @@ function getStatusClass(status) {
     return `status-${status}`;
 }
 
+// Fonction pour vérifier si un match est en cours
+function isMatchOngoing(dateStr) {
+    if (!dateStr) return false;
+    
+    const matchDateTime = new Date(dateStr);
+    const now = new Date();
+    
+    // Durée du match: 2*20 min + 5 min de mi-temps = 45 minutes
+    const matchDuration = 45 * 60 * 1000;
+    const matchEnd = new Date(matchDateTime.getTime() + matchDuration);
+    
+    // Le match est en cours si maintenant est entre le début et la fin
+    return now >= matchDateTime && now <= matchEnd;
+}
+
 // Fonction pour créer une carte de match
 function createMatchCard(match) {
     const status = getMatchStatus(match);
     const statusText = getStatusText(status);
     const statusClass = getStatusClass(status);
+    
+    // Vérifier si le match est en cours
+    const isOngoing = isMatchOngoing(match.date);
 
     // Utiliser les scores depuis l'API, sinon afficher "-"
     const scoreDomicile = match.score_domicile || '-';
@@ -94,6 +112,9 @@ function createMatchCard(match) {
 
     const card = document.createElement('div');
     card.className = 'match-card';
+    if (isOngoing) {
+        card.classList.add('ongoing');
+    }
     card.style.cursor = 'pointer';
     card.innerHTML = `
         <div class="match-header">
