@@ -253,10 +253,29 @@ header h1 {
     100% { transform: rotate(360deg); }
 }
 
+.matches-container {
+    width: 100%;
+}
+
+.poule-section {
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+.poule-title {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #667eea;
+}
+
 .matches-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
+    width: 100%;
 }
 
 .match-card {
@@ -423,6 +442,13 @@ footer {
     color: #999;
     font-size: 0.9em;
     border-top: 1px solid #e0e0e0;
+}
+
+/* Tablette - 2 colonnes */
+@media (max-width: 1024px) {
+    .matches-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 /* Responsive Design */

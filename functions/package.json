@@ -1,0 +1,22 @@
+{
+  "name": "firebase-functions",
+  "description": "Cloud Functions pour Interligues U14",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^11.11.1",
+    "firebase-functions": "^4.8.1"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}

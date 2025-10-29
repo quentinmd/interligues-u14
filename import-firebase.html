@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Données Firebase</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-import {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-import:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-import:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-clear {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #ff5252;
+        }
+
+        .logs {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+        }
+
+        .log-entry.info {
+            color: #00ff00;
+        }
+
+        .log-entry.success {
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .log-entry.error {
+            color: #ff4444;
+        }
+
+        .log-entry.warning {
+            color: #ffaa00;
+        }
+
+        .log-entry.section {
+            color: #00ccff;
+            font-weight: bold;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .status {
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .status.idle {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Import Firebase</h1>
+        <p class="subtitle">Importer les données de l'API vers Firestore</p>
+
+        <div class="info-box">
+            ℹ️ Ce script va charger toutes les phases, poules et matchs depuis l'API officielle et les sauvegarder dans Firestore.
+        </div>
+
+        <div class="status idle" id="status">En attente</div>
+
+        <div class="controls">
+            <button class="btn-import" id="importBtn" onclick="startImport()">
+                📥 Importer toutes les données
+            </button>
+            <button class="btn-clear" onclick="clearLogs()" style="flex: 0; min-width: auto;">
+                🗑️ Effacer logs
+            </button>
+        </div>
+
+        <div class="logs" id="logs"></div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat">
+                <div class="stat-value" id="matchsCount">0</div>
+                <div class="stat-label">Matchs importés</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="phasesCount">0</div>
+                <div class="stat-label">Phases importées</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs, 
+            setDoc, 
+            doc,
+            writeBatch,
+            query,
+            orderBy
+        } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+        // Config Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjIQvTpQwo-CZUWDqsu84s1P0DT--kIA8",
+            authDomain: "interligues-u14-v2.firebaseapp.com",
+            projectId: "interligues-u14-v2",
+            storageBucket: "interligues-u14-v2.appspot.com",
+            messagingSenderId: "683776458153",
+            appId: "1:683776458153:web:93e97983e74d0f69ec98b8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const API_BASE = 'https://api-ffhockey-sur-gazon.fly.dev/api/v1';
+
+        let stats = { matchs: 0, phases: 0 };
+
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString('fr-FR');
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logsDiv.appendChild(entry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+
+        function updateStatus(message, status) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${status}`;
+        }
+
+        function updateStats() {
+            document.getElementById('stats').style.display = 'grid';
+            document.getElementById('matchsCount').textContent = stats.matchs;
+            document.getElementById('phasesCount').textContent = stats.phases;
+        }
+
+        async function getPhasesFromAPI(category) {
+            const endpoint = `/interligues-u14-${category}/phases`;
+            const response = await fetch(`${API_BASE}${endpoint}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const result = await response.json();
+            return result.data || result;
+        }
+
+        async function getPoulesFromAPI(category, phaseId) {
+            const endpoint = `/interligues-u14-${category}/poules/${phaseId}`;
+            const response = await fetch(`${API_BASE}${endpoint}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const result = await response.json();
+            return result.data || result;
+        }
+
+        async function getMatchsFromAPI(category, pouleType) {
+            const endpoint = `/interligues-u14-${category}-poule-${pouleType}/matchs`;
+            const response = await fetch(`${API_BASE}${endpoint}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const result = await response.json();
+            return result.data || result;
+        }
+
+        async function saveMatchs(category, matchsData) {
+            if (matchsData.length === 0) return;
+            
+            const batch = writeBatch(db);
+            const collectionName = category === 'filles' ? 'matchs_filles' : 'matchs_garcons';
+            
+            matchsData.forEach((match, index) => {
+                const docRef = doc(db, collectionName, `match_${index}_${Date.now()}`);
+                batch.set(docRef, {
+                    ...match,
+                    lastUpdated: new Date(),
+                    category: category
+                });
+            });
+            
+            await batch.commit();
+            stats.matchs += matchsData.length;
+            log(`✅ ${matchsData.length} matchs ${category} sauvegardés`, 'success');
+        }
+
+        async function savePhase(category, phaseData) {
+            const collectionName = category === 'filles' ? 'phases_filles' : 'phases_garcons';
+            const phaseId = phaseData.phase_id || phaseData.id || `phase_${Date.now()}`;
+            
+            const docRef = doc(db, collectionName, phaseId);
+            await setDoc(docRef, {
+                ...phaseData,
+                lastUpdated: new Date()
+            });
+            
+            stats.phases++;
+            return phaseId;
+        }
+
+        async function savePoule(category, phaseId, pouleData) {
+            const collectionName = category === 'filles' ? 'phases_filles' : 'phases_garcons';
+            const pouleId = pouleData.poule_id || pouleData.id || `poule_${Date.now()}`;
+            
+            const docRef = doc(db, collectionName, phaseId, "poules", pouleId);
+            await setDoc(docRef, {
+                ...pouleData,
+                lastUpdated: new Date()
+            });
+            
+            return pouleId;
+        }
+
+        async function importMatchsForCategory(category) {
+            log(`\n🔄 === IMPORT MATCHS ${category.toUpperCase()} ===`, 'section');
+            
+            const allMatchs = [];
+            
+            try {
+                if (category === 'garcons') {
+                    // Garçons: Poule A + Poule B
+                    log(`📥 Chargement matchs Poule A...`, 'info');
+                    const matchsA = await getMatchsFromAPI(category, 'a');
+                    allMatchs.push(...matchsA.map(m => ({
+                        ...m,
+                        poule: 'A',
+                        category: category
+                    })));
+                    log(`✅ ${matchsA.length} matchs Poule A chargés`, 'success');
+                    
+                    log(`📥 Chargement matchs Poule B...`, 'info');
+                    const matchsB = await getMatchsFromAPI(category, 'b');
+                    allMatchs.push(...matchsB.map(m => ({
+                        ...m,
+                        poule: 'B',
+                        category: category
+                    })));
+                    log(`✅ ${matchsB.length} matchs Poule B chargés`, 'success');
+                } else if (category === 'filles') {
+                    // Filles: endpoint direct
+                    log(`📥 Chargement matchs filles (endpoint direct)...`, 'info');
+                    const endpoint = `/interligues-u14-filles/matchs`;
+                    const response = await fetch(`${API_BASE}${endpoint}`);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    const matchsFilles = result.data || result;
+                    
+                    allMatchs.push(...matchsFilles.map(m => ({
+                        ...m,
+                        category: category
+                    })));
+                    log(`✅ ${matchsFilles.length} matchs filles chargés`, 'success');
+                }
+                
+                if (allMatchs.length > 0) {
+                    await saveMatchs(category, allMatchs);
+                }
+            } catch (error) {
+                log(`❌ Erreur import matchs ${category}: ${error.message}`, 'error');
+            }
+        }
+
+        async function importPhasesForCategory(category) {
+            log(`\n🔄 === IMPORT PHASES ${category.toUpperCase()} ===`, 'section');
+            
+            try {
+                const phases = await getPhasesFromAPI(category);
+                log(`✅ ${phases.length} phases chargées`, 'success');
+                
+                for (const phase of phases) {
+                    const phaseId = phase.phase_id || phase.id;
+                    log(`\n📌 Phase: ${phase.libelle}`, 'info');
+                    
+                    await savePhase(category, {
+                        phase_id: phaseId,
+                        libelle: phase.libelle,
+                        ordre: phase.ordre || 0,
+                        date_debut: phase.date_debut,
+                        date_fin: phase.date_fin,
+                        description: phase.description || ''
+                    });
+                    
+                    const poules = await getPoulesFromAPI(category, phaseId);
+                    
+                    for (const poule of poules) {
+                        const pouleId = poule.poule_id || poule.id;
+                        const rencontres = poule.rencontres || poule.rencontre || [];
+                        
+                        log(`   📋 Poule ${poule.libelle}: ${rencontres.length} matchs`, 'info');
+                        
+                        await savePoule(category, phaseId, {
+                            poule_id: pouleId,
+                            libelle: poule.libelle,
+                            ordre: poule.ordre || 0,
+                            rencontres: rencontres
+                        });
+                    }
+                    
+                    log(`✅ ${phase.libelle} importée`, 'success');
+                }
+            } catch (error) {
+                log(`❌ Erreur import phases ${category}: ${error.message}`, 'error');
+            }
+        }
+
+        window.startImport = async function() {
+            const btn = document.getElementById('importBtn');
+            btn.disabled = true;
+            clearLogs();
+            stats = { matchs: 0, phases: 0 };
+            
+            updateStatus('⏳ Import en cours...', 'loading');
+            log('🚀 ========== IMPORT DONNÉES FIREBASE ==========', 'section');
+            log(`⏰ Démarrage: ${new Date().toLocaleString('fr-FR')}`, 'info');
+            
+            try {
+                // Import garçons
+                await importPhasesForCategory('garcons');
+                await importMatchsForCategory('garcons');
+                
+                // Import filles
+                await importPhasesForCategory('filles');
+                await importMatchsForCategory('filles');
+                
+                updateStats();
+                log('\n✅ ========== IMPORT TERMINÉ AVEC SUCCÈS ==========', 'success');
+                log(`⏰ Fin: ${new Date().toLocaleString('fr-FR')}`, 'info');
+                updateStatus('✅ Import réussi !', 'success');
+            } catch (error) {
+                log(`\n❌ ERREUR: ${error.message}`, 'error');
+                updateStatus('❌ Erreur lors de l\'import', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        window.clearLogs = clearLogs;
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "interligues-u14-v2",
+  "version": "2.0.0",
+  "description": "Interligues U14 Hockey - Version Firebase",
+  "type": "module",
+  "scripts": {
+    "dev": "npx http-server . -p 8080 -o",
+    "serve": "npx http-server . -p 8080",
+    "import": "node import-data.js"
+  },
+  "keywords": [
+    "hockey",
+    "interligues",
+    "u14"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "firebase-tools": "^14.22.0"
+  }
+}
