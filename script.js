@@ -502,7 +502,9 @@ async function loadPhasesGarcons() {
         return Array.isArray(phases) ? phases : phases.data || phases.phases || [];
     } catch (error) {
         console.warn('Erreur lors du chargement des phases garçons:', error);
-
+        return [];
+    }
+}
 
 // Fonction pour charger les poules pour une phase spécifique
 async function loadPoulesForPhase(phaseId) {
@@ -1066,5 +1068,5 @@ function optimizeMobile() {
     }
 }
 
-// ===== GESTION DE LA MODALE =====// ===== FIN DU SCRIPT =====
+// ===== FIN DU SCRIPT =====
 
