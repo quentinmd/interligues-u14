@@ -289,9 +289,10 @@ async function loadMatchesForPhaseFilles(phaseId) {
         for (const poule of poules) {
             const pouleName = poule.libelle || poule.nom || `Poule ${poule.poule_id}`;
             
-            // Les matchs sont directement dans le array 'rencontres'
-            if (poule.rencontres && Array.isArray(poule.rencontres)) {
-                const matches = poule.rencontres.map(m => ({ 
+            // Les matchs sont directement dans le array 'rencontres' ou 'rencontre' (typo)
+            const rencontres = poule.rencontres || poule.rencontre || [];
+            if (Array.isArray(rencontres)) {
+                const matches = rencontres.map(m => ({ 
                     ...m, 
                     poule: pouleName,
                     // Normaliser les champs pour la compatibilité
@@ -299,7 +300,7 @@ async function loadMatchesForPhaseFilles(phaseId) {
                     equipe2: m.equipe_exterieur,
                     but1: m.score_domicile,
                     but2: m.score_exterieur,
-                    rencId: m.rencId
+                    rencId: m.rencId || ''
                 }));
                 allPhaseMatches.push(...matches);
             }
@@ -620,9 +621,10 @@ async function loadMatchesForPhase(phaseId) {
         for (const poule of poules) {
             const pouleName = poule.libelle || poule.nom || `Poule ${poule.poule_id}`;
             
-            // Les matchs sont directement dans le array 'rencontres'
-            if (poule.rencontres && Array.isArray(poule.rencontres)) {
-                const matches = poule.rencontres.map(m => ({ 
+            // Les matchs sont directement dans le array 'rencontres' ou 'rencontre' (typo)
+            const rencontres = poule.rencontres || poule.rencontre || [];
+            if (Array.isArray(rencontres)) {
+                const matches = rencontres.map(m => ({ 
                     ...m, 
                     poule: pouleName,
                     // Normaliser les champs pour la compatibilité
@@ -630,7 +632,7 @@ async function loadMatchesForPhase(phaseId) {
                     equipe2: m.equipe_exterieur,
                     but1: m.score_domicile,
                     but2: m.score_exterieur,
-                    rencId: m.rencId
+                    rencId: m.rencId || ''
                 }));
                 allPhaseMatches.push(...matches);
             }
