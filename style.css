@@ -121,6 +121,50 @@ header h1 {
     color: #999;
 }
 
+.phases-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.phases-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 1em;
+}
+
+.phases-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.phase-btn {
+    padding: 10px 20px;
+    border: 2px solid #ddd;
+    background: white;
+    color: #333;
+    border-radius: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95em;
+}
+
+.phase-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.phase-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
 .classement-table {
     background: white;
     border-radius: 12px;
