@@ -222,7 +222,7 @@ async function loadMatches(type) {
     }
 }
 
-// Fonction pour charger les phases des garçons
+// Fonction pour charger les phases des garçons (phases supplémentaires : 1/2 finales, finales)
 async function loadPhasesGarcons() {
     try {
         const response = await fetch(`${API_BASE_URL}${ENDPOINTS.garcons_phases}`);
@@ -254,12 +254,12 @@ async function loadPoulesForPhase(phaseId) {
     }
 }
 
-// Fonction pour afficher les sélecteurs de phase
-function displayPhaseButtons(phases) {
+// Fonction pour afficher les sélecteurs de phase (incluant les poules)
+function displayPhaseButtons(poulesPhases) {
     const phasesContainer = document.getElementById('phases-container');
     const phasesButtonsContainer = document.getElementById('phases-buttons');
     
-    if (!phases || phases.length === 0) {
+    if (!poulesPhases || poulesPhases.length === 0) {
         phasesContainer.style.display = 'none';
         return;
     }
@@ -267,7 +267,7 @@ function displayPhaseButtons(phases) {
     phasesContainer.style.display = 'flex';
     phasesButtonsContainer.innerHTML = '';
     
-    phases.forEach((phase, index) => {
+    poulesPhases.forEach((phase, index) => {
         const phaseId = phase.id || phase.phase_id || index;
         const phaseName = phase.nom || phase.name || `Phase ${index + 1}`;
         
@@ -284,28 +284,58 @@ function displayPhaseButtons(phases) {
             // Activer le bouton cliqué
             btn.classList.add('active');
             currentPhaseId = phaseId;
-            // Charger les matchs de cette phase
-            loadMatchesForPhase(phaseId);
+            // Afficher les matchs de cette phase
+            displayMatchesForPhase(phaseId, poulesPhases);
         });
         
         phasesButtonsContainer.appendChild(btn);
     });
 }
 
-// Fonction pour charger les matchs d'une phase spécifique
-async function loadMatchesForPhase(phaseId) {
+// Fonction pour afficher les matchs d'une phase sélectionnée
+function displayMatchesForPhase(phaseId, poulesPhases) {
     const container = document.getElementById('matches-garcons');
     const spinner = document.getElementById('loading-garcons');
     
     try {
         spinner.style.display = 'inline-block';
         
+        // Récupérer les matchs de cette phase depuis le stockage
+        const matches = allMatches.garcons_phases[phaseId] || [];
+        
+        if (matches.length === 0) {
+            container.innerHTML = '<p class="loading">Aucun match trouvé pour cette phase.</p>';
+            return;
+        }
+        
+        // Afficher les matchs
+        container.innerHTML = '';
+        matches.forEach(match => {
+            const card = createMatchCard(match);
+            container.appendChild(card);
+        });
+        
+        // Mettre à jour le classement avec les matchs de cette phase
+        allMatches.garcons = matches;
+        updateClassement();
+        
+    } catch (error) {
+        console.error('Erreur lors de l\'affichage des matchs:', error);
+        container.innerHTML = `<p class="loading">Erreur: ${error.message}</p>`;
+    } finally {
+        spinner.style.display = 'none';
+    }
+}
+
+// Fonction pour charger les matchs d'une phase spécifique depuis l'API
+async function loadMatchesForPhase(phaseId) {
+    try {
         // Récupérer les poules de cette phase
         const poules = await loadPoulesForPhase(phaseId);
         
         if (!poules || poules.length === 0) {
-            container.innerHTML = '<p class="loading">Aucune poule trouvée pour cette phase.</p>';
-            return;
+            console.warn('Aucune poule trouvée pour cette phase');
+            return [];
         }
         
         // Charger les matchs de toutes les poules
@@ -333,11 +363,6 @@ async function loadMatchesForPhase(phaseId) {
         // Filtrer par date
         let filteredMatches = filterMatchesByDate(allPhaseMatches);
         
-        if (filteredMatches.length === 0) {
-            container.innerHTML = '<p class="loading">Aucun match trouvé pour cette phase.</p>';
-            return;
-        }
-        
         // Trier par date et heure
         filteredMatches.sort((a, b) => {
             const dateA = new Date(a.date || '');
@@ -345,28 +370,15 @@ async function loadMatchesForPhase(phaseId) {
             return dateA - dateB;
         });
         
-        // Afficher les matchs
-        container.innerHTML = '';
-        filteredMatches.forEach(match => {
-            const card = createMatchCard(match);
-            container.appendChild(card);
-        });
-        
-        // Stocker les matchs
-        allMatches.garcons = filteredMatches;
-        allMatches.garcons_phases[phaseId] = filteredMatches;
+        return filteredMatches;
         
     } catch (error) {
         console.error('Erreur lors du chargement des matchs de la phase:', error);
-        container.innerHTML = `<p class="loading">Erreur lors du chargement: ${error.message}</p>`;
-        showError(`Impossible de charger les matchs: ${error.message}`);
-    } finally {
-        spinner.style.display = 'none';
-        updateClassement();
+        return [];
     }
 }
 
-// Fonction pour charger les matchs des garçons avec poules
+// Fonction pour charger les matchs des garçons avec poules ET phases
 async function loadGarconsWithPoules() {
     const container = document.getElementById('matches-garcons');
     const spinner = document.getElementById('loading-garcons');
@@ -374,71 +386,78 @@ async function loadGarconsWithPoules() {
     try {
         spinner.style.display = 'inline-block';
         
-        // Essayer de charger les phases d'abord (nouveau système)
-        const phases = await loadPhasesGarcons();
+        // Charger les poules (Poule A et Poule B) en parallèle
+        const [responseA, responseB] = await Promise.all([
+            fetch(`${API_BASE_URL}${ENDPOINTS.garcons_poule_a}`),
+            fetch(`${API_BASE_URL}${ENDPOINTS.garcons_poule_b}`)
+        ]);
+
+        // Récupérer les matchs des poules
+        let matchesA = [];
+        let matchesB = [];
         
-        if (phases && phases.length > 0) {
-            // Afficher les sélecteurs de phase
-            displayPhaseButtons(phases);
-            
-            // Charger les matchs de la première phase
-            const firstPhaseId = phases[0].id || phases[0].phase_id || 0;
-            await loadMatchesForPhase(firstPhaseId);
-        } else {
-            // Fallback vers l'ancien système (poule A et poule B)
-            console.log('Utilisation du système de poules existant (fallback)');
-            
-            // Cacher les sélecteurs de phase
-            const phasesContainer = document.getElementById('phases-container');
-            if (phasesContainer) {
-                phasesContainer.style.display = 'none';
-            }
-            
-            // Charger les deux poules en parallèle
-            const [responseA, responseB] = await Promise.all([
-                fetch(`${API_BASE_URL}${ENDPOINTS.garcons_poule_a}`),
-                fetch(`${API_BASE_URL}${ENDPOINTS.garcons_poule_b}`)
-            ]);
-
-            if (!responseA.ok || !responseB.ok) {
-                throw new Error(`Erreur API: Une ou plusieurs requêtes ont échoué`);
-            }
-
+        if (responseA.ok) {
             const dataA = await responseA.json();
-            const dataB = await responseB.json();
-
-            // Récupérer les matchs
-            let matchesA = (Array.isArray(dataA) ? dataA : dataA.data || dataA.matchs || []).map(m => ({ ...m, poule: 'Poule A' }));
-            let matchesB = (Array.isArray(dataB) ? dataB : dataB.data || dataB.matchs || []).map(m => ({ ...m, poule: 'Poule B' }));
-
-            // Combiner et filtrer par date
-            let allMatches_garcons = [...matchesA, ...matchesB];
-            allMatches_garcons = filterMatchesByDate(allMatches_garcons);
-
-            if (allMatches_garcons.length === 0) {
-                container.innerHTML = '<p class="loading">Aucun match trouvé pour la période 27-30 octobre 2025.</p>';
-                return;
-            }
-
-            // Trier par date et heure
-            allMatches_garcons.sort((a, b) => {
-                const dateA = new Date(a.date || '');
-                const dateB = new Date(b.date || '');
-                return dateA - dateB;
-            });
-
-            // Afficher les matchs
-            container.innerHTML = '';
-            allMatches_garcons.forEach(match => {
-                const card = createMatchCard(match);
-                container.appendChild(card);
-            });
-
-            // Stocker les matchs
-            allMatches.garcons = allMatches_garcons;
-            allMatches.garcons_poule_a = matchesA;
-            allMatches.garcons_poule_b = matchesB;
+            matchesA = (Array.isArray(dataA) ? dataA : dataA.data || dataA.matchs || []).map(m => ({ ...m, poule: 'Poule A' }));
         }
+        
+        if (responseB.ok) {
+            const dataB = await responseB.json();
+            matchesB = (Array.isArray(dataB) ? dataB : dataB.data || dataB.matchs || []).map(m => ({ ...m, poule: 'Poule B' }));
+        }
+
+        // Créer l'objet "Poules" pour le stockage
+        let poulesPhases = [
+            { 
+                id: 'poules', 
+                phase_id: 'poules',
+                nom: 'Poules (28-29 oct)',
+                name: 'Poules'
+            }
+        ];
+
+        // Stocker les matchs des poules
+        allMatches.garcons_poule_a = matchesA;
+        allMatches.garcons_poule_b = matchesB;
+        let combinedPoulesMatches = [...matchesA, ...matchesB];
+        combinedPoulesMatches = filterMatchesByDate(combinedPoulesMatches);
+        allMatches.garcons_phases['poules'] = combinedPoulesMatches;
+
+        // Charger les phases supplémentaires (1/2 Finales, Finales)
+        const additionalPhases = await loadPhasesGarcons();
+        
+        if (additionalPhases && additionalPhases.length > 0) {
+            // Charger les matchs pour chaque phase supplémentaire
+            for (const phase of additionalPhases) {
+                const phaseId = phase.id || phase.phase_id;
+                const phaseMatches = await loadMatchesForPhase(phaseId);
+                allMatches.garcons_phases[phaseId] = phaseMatches;
+            }
+            
+            // Ajouter les phases supplémentaires après les poules
+            poulesPhases = poulesPhases.concat(additionalPhases);
+        }
+
+        // Afficher les sélecteurs de phase (Poules + phases supplémentaires)
+        if (poulesPhases.length > 0) {
+            displayPhaseButtons(poulesPhases);
+        }
+
+        // Afficher d'abord les matchs des poules
+        container.innerHTML = '';
+        combinedPoulesMatches = combinedPoulesMatches.sort((a, b) => {
+            const dateA = new Date(a.date || '');
+            const dateB = new Date(b.date || '');
+            return dateA - dateB;
+        });
+        
+        combinedPoulesMatches.forEach(match => {
+            const card = createMatchCard(match);
+            container.appendChild(card);
+        });
+
+        // Stocker tous les matchs garçons
+        allMatches.garcons = combinedPoulesMatches;
 
     } catch (error) {
         console.error('Erreur lors du chargement des matchs garçons:', error);
